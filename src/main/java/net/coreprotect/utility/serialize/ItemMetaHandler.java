@@ -9,13 +9,10 @@ import java.util.Map.Entry;
 import org.bukkit.Bukkit;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Material;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.banner.Pattern;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
-import org.bukkit.inventory.meta.CrossbowMeta;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.FireworkEffectMeta;
 import org.bukkit.inventory.meta.FireworkMeta;
@@ -23,7 +20,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SuspiciousStewMeta;
 import org.bukkit.potion.PotionEffect;
 
 import net.coreprotect.bukkit.BukkitAdapter;
@@ -34,7 +30,7 @@ import net.coreprotect.utility.StringUtils;
 public class ItemMetaHandler {
 
     public static String getEnchantmentName(Enchantment enchantment, int level) {
-        String name = enchantment.getKey().getKey();
+        String name = enchantment.getName().toLowerCase();
 
         switch (name) {
             case "vanishing_curse":
@@ -119,22 +115,9 @@ public class ItemMetaHandler {
     public static List<List<Map<String, Object>>> serialize(ItemStack item, Material type, String faceData, int slot) {
         List<List<Map<String, Object>>> metadata = new ArrayList<>();
         List<Map<String, Object>> list = new ArrayList<>();
-        List<Object> modifiers = new ArrayList<>();
 
         if (item != null && item.hasItemMeta() && item.getItemMeta() != null) {
             ItemMeta itemMeta = item.getItemMeta().clone();
-
-            if (itemMeta.hasAttributeModifiers()) {
-                for (Map.Entry<Attribute, AttributeModifier> entry : itemMeta.getAttributeModifiers().entries()) {
-                    Map<Object, Map<String, Object>> attributeList = new HashMap<>();
-                    Attribute attribute = entry.getKey();
-                    AttributeModifier modifier = entry.getValue();
-
-                    itemMeta.removeAttributeModifier(attribute, modifier);
-                    attributeList.put(BukkitAdapter.ADAPTER.getRegistryKey(attribute), modifier.serialize());
-                    modifiers.add(attributeList);
-                }
-            }
 
             if (itemMeta instanceof LeatherArmorMeta) {
                 LeatherArmorMeta meta = (LeatherArmorMeta) itemMeta;
@@ -151,13 +134,8 @@ public class ItemMetaHandler {
             else if (itemMeta instanceof PotionMeta) {
                 PotionMeta meta = (PotionMeta) itemMeta;
                 PotionMeta subMeta = meta.clone();
-                meta.setColor(null);
                 meta.clearCustomEffects();
                 list.add(meta.serialize());
-
-                if (subMeta.hasColor()) {
-                    list.add(subMeta.getColor().serialize());
-                }
                 metadata.add(list);
 
                 if (subMeta.hasCustomEffects()) {
@@ -206,53 +184,10 @@ public class ItemMetaHandler {
                     metadata.add(list);
                 }
             }
-            else if (itemMeta instanceof CrossbowMeta) {
-                CrossbowMeta meta = (CrossbowMeta) itemMeta;
-                CrossbowMeta subMeta = (CrossbowMeta) meta.clone();
-                meta.setChargedProjectiles(null);
-                list.add(meta.serialize());
-                metadata.add(list);
-
-                if (subMeta.hasChargedProjectiles()) {
-                    list = new ArrayList<>();
-
-                    for (ItemStack chargedProjectile : subMeta.getChargedProjectiles()) {
-                        Map<String, Object> itemMap = ItemUtils.serializeItemStack(chargedProjectile, null, slot);
-                        if (itemMap.size() > 0) {
-                            list.add(itemMap);
-                        }
-                    }
-
-                    metadata.add(list);
-                }
-            }
             else if (itemMeta instanceof MapMeta) {
                 MapMeta meta = (MapMeta) itemMeta;
-                MapMeta subMeta = meta.clone();
-                meta.setColor(null);
                 list.add(meta.serialize());
                 metadata.add(list);
-
-                if (subMeta.hasColor()) {
-                    list = new ArrayList<>();
-                    list.add(subMeta.getColor().serialize());
-                    metadata.add(list);
-                }
-            }
-            else if (itemMeta instanceof SuspiciousStewMeta) {
-                SuspiciousStewMeta meta = (SuspiciousStewMeta) itemMeta;
-                SuspiciousStewMeta subMeta = meta.clone();
-                meta.clearCustomEffects();
-                list.add(meta.serialize());
-                metadata.add(list);
-
-                if (subMeta.hasCustomEffects()) {
-                    for (PotionEffect effect : subMeta.getCustomEffects()) {
-                        list = new ArrayList<>();
-                        list.add(effect.serialize());
-                        metadata.add(list);
-                    }
-                }
             }
             else if (!BukkitAdapter.ADAPTER.getItemMeta(itemMeta, list, metadata, slot)) {
                 list.add(itemMeta.serialize());
@@ -271,14 +206,6 @@ public class ItemMetaHandler {
         if (faceData != null && faceData.length() > 0) {
             Map<String, Object> meta = new HashMap<>();
             meta.put("facing", faceData);
-            list = new ArrayList<>();
-            list.add(meta);
-            metadata.add(list);
-        }
-
-        if (modifiers.size() > 0) {
-            Map<String, Object> meta = new HashMap<>();
-            meta.put("modifiers", modifiers);
             list = new ArrayList<>();
             list.add(meta);
             metadata.add(list);

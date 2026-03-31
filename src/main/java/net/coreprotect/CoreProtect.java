@@ -16,7 +16,6 @@ import net.coreprotect.utility.Chat;
 public final class CoreProtect extends JavaPlugin {
 
     private static CoreProtect instance;
-    private boolean advancedChestsEnabled = false;
 
     /**
      * Get the instance of CoreProtect
@@ -44,7 +43,6 @@ public final class CoreProtect extends JavaPlugin {
         instance = this;
         ConfigHandler.path = this.getDataFolder().getPath() + File.separator;
 
-        advancedChestsEnabled = getServer().getPluginManager().getPlugin("AdvancedChests") != null;
         // Initialize plugin using the initialization service
         boolean initialized = PluginInitializationService.initializePlugin(this);
 
@@ -60,7 +58,4 @@ public final class CoreProtect extends JavaPlugin {
         ShutdownService.safeShutdown(this);
     }
 
-    public boolean isAdvancedChestsEnabled() {
-        return advancedChestsEnabled;
-    }
 }

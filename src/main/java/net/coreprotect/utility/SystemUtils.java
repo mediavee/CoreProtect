@@ -240,7 +240,7 @@ public class SystemUtils {
             SystemInfo systemInfo = new SystemInfo();
             result = systemInfo.getHardware().getProcessor();
         }
-        catch (Exception e) {
+        catch (Throwable e) {
             // unable to read processor information
         }
 

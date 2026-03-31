@@ -19,13 +19,10 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.MerchantInventory;
-import org.bukkit.inventory.MerchantRecipe;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
-import net.coreprotect.bukkit.BukkitAdapter;
 import net.coreprotect.config.Config;
 import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.consumer.Queue;
@@ -89,9 +86,6 @@ public final class CraftItemListener extends Queue implements Listener {
         if (!isTrade && event instanceof CraftItemEvent) {
             recipe = ((CraftItemEvent) event).getRecipe();
         }
-        else if (isTrade && event.getInventory() instanceof MerchantInventory) {
-            recipe = ((MerchantInventory) event.getInventory()).getSelectedRecipe();
-        }
         if (recipe == null) {
             return;
         }
@@ -107,30 +101,7 @@ public final class CraftItemListener extends Queue implements Listener {
             int newMultiplier = Integer.MIN_VALUE;
             for (ItemStack item : event.getInventory().getContents()) {
                 if (item != null && item.getType() != Material.AIR && !item.equals(recipe.getResult())) {
-                    if (isTrade) {
-                        int merchantAmount = newMultiplier;
-                        MerchantRecipe merchantRecipe = (MerchantRecipe) recipe;
-                        for (ItemStack ingredient : merchantRecipe.getIngredients()) {
-                            if (ingredient.isSimilar(item)) {
-                                ItemStack adjusted = BukkitAdapter.ADAPTER.adjustIngredient(merchantRecipe, ingredient);
-                                if (adjusted == null) {
-                                    return;
-                                }
-                                merchantAmount = item.getAmount() / adjusted.getAmount();
-                                break;
-                            }
-                        }
-
-                        int merchantUsesLeft = merchantRecipe.getMaxUses() - merchantRecipe.getUses();
-                        if (merchantUsesLeft < merchantAmount) {
-                            merchantAmount = merchantUsesLeft;
-                        }
-
-                        if (newMultiplier == Integer.MIN_VALUE || merchantAmount < newMultiplier) {
-                            newMultiplier = merchantAmount;
-                        }
-                    }
-                    else if (newMultiplier == Integer.MIN_VALUE || item.getAmount() < newMultiplier) {
+                    if (newMultiplier == Integer.MIN_VALUE || item.getAmount() < newMultiplier) {
                         newMultiplier = item.getAmount();
                     }
                 }
@@ -139,7 +110,7 @@ public final class CraftItemListener extends Queue implements Listener {
 
             int addAmount = amount * amountMultiplier;
             Inventory virtualInventory = Bukkit.createInventory(null, 36);
-            virtualInventory.setStorageContents(bottomInventory.getStorageContents());
+            virtualInventory.setContents(bottomInventory.getContents());
             addItem.setAmount(1);
 
             int addSuccess = 0;
@@ -166,26 +137,20 @@ public final class CraftItemListener extends Queue implements Listener {
         else if (recipe instanceof ShapedRecipe) {
             oldItems.addAll(((ShapedRecipe) recipe).getIngredientMap().values());
         }
-        else if (recipe instanceof MerchantRecipe) {
-            oldItems.addAll(((MerchantRecipe) recipe).getIngredients());
-        }
 
         if (addItem.getAmount() > 0) {
-            Location location = (isTrade || event.getInventory().getLocation() == null) ? player.getLocation() : event.getInventory().getLocation();
+            Location location = player.getLocation();
             for (ItemStack oldItem : oldItems) {
                 if (oldItem == null || oldItem.getType() == Material.AIR) {
                     continue;
                 }
 
-                ItemStack removedItem = isTrade ? BukkitAdapter.ADAPTER.adjustIngredient((MerchantRecipe) recipe, oldItem) : oldItem.clone();
-                if (removedItem == null) {
-                    return;
-                }
+                ItemStack removedItem = oldItem.clone();
                 removedItem.setAmount(removedItem.getAmount() * amountMultiplier);
-                logCraftedItem(location, player.getName(), removedItem, isTrade ? ItemLogger.ITEM_SELL : ItemLogger.ITEM_DESTROY);
+                logCraftedItem(location, player.getName(), removedItem, ItemLogger.ITEM_DESTROY);
             }
 
-            logCraftedItem(location, player.getName(), addItem, isTrade ? ItemLogger.ITEM_BUY : ItemLogger.ITEM_CREATE);
+            logCraftedItem(location, player.getName(), addItem, ItemLogger.ITEM_CREATE);
         }
     }
 

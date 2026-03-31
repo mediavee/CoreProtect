@@ -4,7 +4,6 @@ import org.bukkit.block.DoubleChest;
 import org.bukkit.block.Dropper;
 import org.bukkit.block.Hopper;
 import org.bukkit.entity.minecart.HopperMinecart;
-import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.InventoryHolder;
 
 public class Validate {
@@ -23,7 +22,7 @@ public class Validate {
 
     /* check if valid hopper destination */
     public static boolean isContainer(InventoryHolder inventoryHolder) {
-        return (inventoryHolder instanceof BlockInventoryHolder || inventoryHolder instanceof DoubleChest);
+        return (inventoryHolder instanceof org.bukkit.block.BlockState || inventoryHolder instanceof DoubleChest);
     }
 
 }

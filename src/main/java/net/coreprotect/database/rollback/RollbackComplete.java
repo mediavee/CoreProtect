@@ -171,7 +171,7 @@ public class RollbackComplete {
 
                     // don't display that excluded water/fire/farmland in inventory rollbacks
                     if (actionList.contains(4) && actionList.contains(11)) {
-                        if (excludeTarget.equals(Material.FIRE) || excludeTarget.equals(Material.WATER) || excludeTarget.equals(Material.FARMLAND)) {
+                        if (excludeTarget.equals(Material.FIRE) || excludeTarget.equals(Material.WATER) || excludeTarget.equals(Material.SOIL)) {
                             continue;
                         }
                     }

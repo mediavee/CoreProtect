@@ -2,7 +2,6 @@ package net.coreprotect.listener.block;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -12,9 +11,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.Bisected.Half;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -29,6 +25,7 @@ import net.coreprotect.paper.PaperAdapter;
 
 public final class BlockExplodeListener extends Queue implements Listener {
 
+    @SuppressWarnings("deprecation")
     public static void processBlockExplode(String user, World world, List<Block> blockList) {
         HashMap<Location, Block> blockMap = new HashMap<>();
 
@@ -60,12 +57,11 @@ public final class BlockExplodeListener extends Queue implements Listener {
                         if (BlockGroup.TRACK_ANY.contains(scanType) || BlockGroup.TRACK_TOP.contains(scanType) || BlockGroup.TRACK_TOP_BOTTOM.contains(scanType) || BlockGroup.TRACK_BOTTOM.contains(scanType) || BlockGroup.TRACK_SIDE.contains(scanType)) {
                             blockMap.put(location, scanBlock);
 
-                            // Properly log double blocks, such as doors
-                            BlockData blockData = scanBlock.getBlockData();
-                            if (blockData instanceof Bisected) {
-                                Bisected bisected = (Bisected) blockData;
+                            // Properly log double blocks (doors, double plants)
+                            if (BlockGroup.DOORS.contains(scanType) || scanType == Material.IRON_DOOR_BLOCK || scanType == Material.DOUBLE_PLANT) {
+                                boolean isTopHalf = (scanBlock.getData() & 0x8) != 0;
                                 Location bisectLocation = location.clone();
-                                if (bisected.getHalf() == Half.TOP) {
+                                if (isTopHalf) {
                                     bisectLocation.setY(bisectLocation.getY() - 1);
                                 }
                                 else {
@@ -73,14 +69,12 @@ public final class BlockExplodeListener extends Queue implements Listener {
                                 }
 
                                 int worldMaxHeight = world.getMaxHeight();
-                                int worldMinHeight = BukkitAdapter.ADAPTER.getMinHeight(world);
-                                if (bisectLocation.getBlockY() >= worldMinHeight && bisectLocation.getBlockY() < worldMaxHeight && blockMap.get(bisectLocation) == null) {
+                                if (bisectLocation.getBlockY() >= 0 && bisectLocation.getBlockY() < worldMaxHeight && blockMap.get(bisectLocation) == null) {
                                     blockMap.put(bisectLocation, world.getBlockAt(bisectLocation));
                                 }
                             }
                         }
                         else if (scanType.hasGravity() && Config.getConfig(world).BLOCK_MOVEMENT) {
-                            // log the top-most sand/gravel block as being removed
                             int scanY = location.getBlockY() + 1;
                             boolean topFound = false;
                             while (!topFound) {
@@ -90,7 +84,6 @@ public final class BlockExplodeListener extends Queue implements Listener {
                                     location = new Location(world, location.getBlockX(), (scanY - 1), location.getBlockZ());
                                     topFound = true;
 
-                                    // log block attached to top as being removed
                                     if (BlockGroup.TRACK_ANY.contains(topMaterial) || BlockGroup.TRACK_TOP.contains(topMaterial) || BlockGroup.TRACK_TOP_BOTTOM.contains(topMaterial)) {
                                         blockMap.put(topBlock.getLocation(), topBlock);
                                     }
@@ -140,43 +133,29 @@ public final class BlockExplodeListener extends Queue implements Listener {
             }
 
             Database.containerBreakCheck(user, blockType, block, null, block.getLocation());
-            Queue.queueBlockBreak(user, blockState, blockType, blockState.getBlockData().getAsString(), 0);
+            Queue.queueBlockBreak(user, blockState, blockType, null, 0);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     protected void onBlockExplode(BlockExplodeEvent event) {
-        Material eventMaterial = BukkitAdapter.ADAPTER.getExplodedBlock(event);
-        World world = event.getBlock().getLocation().getWorld();
-
-        if (!BukkitAdapter.ADAPTER.shouldLogExplosion(event)){
+        if (event.isCancelled()) {
             return;
         }
 
-        String user = "";
-        if (!eventMaterial.equals(Material.AIR) && !eventMaterial.equals(Material.CAVE_AIR)) {
-            user = eventMaterial.name().toLowerCase(Locale.ROOT);
-
-            if (user.contains("respawn_anchor")) {
-                user = "#respawn_anchor";
-            }
-            else if (user.contains("_bed")) {
-                user = "#bed";
-            }
-        }
-        
-        if (!user.startsWith("#")) {
-            user = "#explosion";
+        World world = event.getBlock().getLocation().getWorld();
+        if (!Config.getConfig(world).EXPLOSIONS) {
+            return;
         }
 
-        boolean log = false;
-        if (Config.getConfig(world).EXPLOSIONS) {
-            log = true;
+        // In 1.8, block explosions are typically from TNT or beds
+        Material blockType = event.getBlock().getType();
+        String user = "#explosion";
+        if (blockType.name().contains("_BED") || blockType == Material.BED_BLOCK) {
+            user = "#bed";
         }
 
-        if (!event.isCancelled() && log) {
-            processBlockExplode(user, world, event.blockList());
-        }
+        processBlockExplode(user, world, event.blockList());
     }
 
 }

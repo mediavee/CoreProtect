@@ -34,11 +34,11 @@ public class BlockBreakLogger {
             if (checkType == null) {
                 return;
             }
-            else if (checkType.equals(Material.AIR) || checkType.equals(Material.CAVE_AIR)) {
+            else if (checkType.equals(Material.AIR)) {
                 return;
             }
 
-            if (ConfigHandler.blacklist.get(checkType.getKey().toString()) != null) {
+            if (ConfigHandler.blacklist.get("minecraft:" + checkType.name().toLowerCase(Locale.ROOT)) != null) {
                 return;
             }
 
@@ -47,10 +47,7 @@ public class BlockBreakLogger {
                 CacheHandler.spreadCache.remove(cacheId);
             }
 
-            if (checkType == Material.LECTERN) {
-                blockData = blockData.replaceFirst("has_book=true", "has_book=false");
-            }
-            else if (checkType == Material.PAINTING || BukkitAdapter.ADAPTER.isItemFrame(checkType)) {
+            if (checkType == Material.PAINTING || BukkitAdapter.ADAPTER.isItemFrame(checkType)) {
                 blockData = overrideData;
             }
 

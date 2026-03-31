@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.bukkit.Location;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
@@ -45,10 +44,7 @@ public class ShutdownService {
                 }
             }
 
-            // Revert any teleport blocks if not using Folia
-            if (!ConfigHandler.isFolia) {
-                revertTeleportBlocks();
-            }
+            revertTeleportBlocks();
 
             ConfigHandler.serverRunning = false;
             long shutdownTime = System.currentTimeMillis();
@@ -111,11 +107,13 @@ public class ShutdownService {
     /**
      * Reverts any blocks that were temporarily changed during player teleports
      */
+    @SuppressWarnings("deprecation")
     private static void revertTeleportBlocks() {
-        Iterator<Entry<Location, BlockData>> iterator = Teleport.revertBlocks.entrySet().iterator();
+        Iterator<Entry<Location, int[]>> iterator = Teleport.revertBlocks.entrySet().iterator();
         while (iterator.hasNext()) {
-            Entry<Location, BlockData> entry = iterator.next();
-            entry.getKey().getBlock().setBlockData(entry.getValue());
+            Entry<Location, int[]> entry = iterator.next();
+            int[] blockInfo = entry.getValue();
+            entry.getKey().getBlock().setTypeIdAndData(blockInfo[0], (byte) blockInfo[1], true);
             iterator.remove();
         }
     }

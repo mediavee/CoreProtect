@@ -100,7 +100,7 @@ public class LocationParser {
                             }
                             if (location != null) {
                                 int worldMaxHeight = location.getWorld().getMaxHeight() - 1;
-                                int worldMinHeight = BukkitAdapter.ADAPTER.getMinHeight(location.getWorld());
+                                int worldMinHeight = 0;
 
                                 if (y < worldMinHeight) {
                                     y = Double.valueOf(worldMinHeight);

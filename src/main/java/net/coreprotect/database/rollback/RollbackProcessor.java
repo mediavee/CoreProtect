@@ -16,8 +16,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Jukebox;
+import org.bukkit.block.Jukebox;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -40,35 +39,14 @@ public class RollbackProcessor {
 
     /**
      * Process data for a specific chunk
-     * 
-     * @param finalChunkX
-     *            The chunk X coordinate
-     * @param finalChunkZ
-     *            The chunk Z coordinate
-     * @param chunkKey
-     *            The chunk lookup key
-     * @param blockList
-     *            The list of block data to process
-     * @param itemList
-     *            The list of item data to process
-     * @param rollbackType
-     *            The rollback type (0=rollback, 1=restore)
-     * @param preview
-     *            Whether this is a preview (0=no, 1=yes-non-destructive, 2=yes-destructive)
-     * @param finalUserString
-     *            The username performing the rollback
-     * @param finalUser
-     *            The user performing the rollback
-     * @param bukkitRollbackWorld
-     *            The world to process
-     * @return True if successful, false if there was an error
      */
+    @SuppressWarnings("deprecation")
     public static boolean processChunk(int finalChunkX, int finalChunkZ, long chunkKey, ArrayList<Object[]> blockList, ArrayList<Object[]> itemList, int rollbackType, int preview, String finalUserString, Player finalUser, World bukkitRollbackWorld, boolean inventoryRollback) {
         try {
             boolean clearInventories = Config.getGlobal().ROLLBACK_ITEMS;
             ArrayList<Object[]> data = blockList != null ? blockList : new ArrayList<>();
             ArrayList<Object[]> itemData = itemList != null ? itemList : new ArrayList<>();
-            Map<Block, BlockData> chunkChanges = new LinkedHashMap<>();
+            Map<Block, byte[]> chunkChanges = new LinkedHashMap<>();
 
             // Process blocks
             for (Object[] row : data) {
@@ -96,23 +74,8 @@ public class RollbackProcessor {
                     meta = RollbackUtil.deserializeMetadata(rowMeta);
                 }
 
-                BlockData blockData = null;
-                if (blockDataString != null && blockDataString.contains(":")) {
-                    try {
-                        blockData = Bukkit.getServer().createBlockData(blockDataString);
-                    }
-                    catch (Exception e) {
-                        // corrupt BlockData, let the server automatically set the BlockData instead
-                    }
-                }
-
-                BlockData rawBlockData = null;
-                if (blockData != null) {
-                    rawBlockData = blockData.clone();
-                }
-                if (rawBlockData == null && rowType != null && rowType.isBlock()) {
-                    rawBlockData = BlockUtils.createBlockData(rowType);
-                }
+                byte parsedData = (byte) rowData;
+                byte rawData = parsedData;
 
                 String rowUser = ConfigHandler.playerIdCacheReversed.get((Integer) row[2]);
                 int oldTypeRaw = rowTypeRaw;
@@ -120,12 +83,12 @@ public class RollbackProcessor {
 
                 if (rowAction == 1 && rollbackType == 0) { // block placement
                     rowType = Material.AIR;
-                    blockData = null;
+                    parsedData = 0;
                     rowTypeRaw = 0;
                 }
                 else if (rowAction == 0 && rollbackType == 1) { // block removal
                     rowType = Material.AIR;
-                    blockData = null;
+                    parsedData = 0;
                     rowTypeRaw = 0;
                 }
                 else if (rowAction == 4 && rollbackType == 0) { // entity placement
@@ -151,14 +114,14 @@ public class RollbackProcessor {
                         Block block = new Location(bukkitWorld, rowX, rowY, rowZ).getBlock();
                         if (preview == 2) {
                             Material blockType = block.getType();
-                            if (!BukkitAdapter.ADAPTER.isItemFrame(blockType) && !blockType.equals(Material.PAINTING) && !blockType.equals(Material.ARMOR_STAND) && !blockType.equals(Material.END_CRYSTAL)) {
-                                BlockUtils.prepareTypeAndData(chunkChanges, block, blockType, block.getBlockData(), true);
+                            if (!BukkitAdapter.ADAPTER.isItemFrame(blockType) && !blockType.equals(Material.PAINTING) && !blockType.equals(Material.ARMOR_STAND)) {
+                                BlockUtils.prepareTypeAndData(chunkChanges, block, blockType, block.getData(), true);
                                 blockCount++;
                             }
                         }
                         else {
-                            if ((!BukkitAdapter.ADAPTER.isItemFrame(rowType)) && (rowType != Material.PAINTING) && (rowType != Material.ARMOR_STAND) && (rowType != Material.END_CRYSTAL)) {
-                                BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
+                            if ((!BukkitAdapter.ADAPTER.isItemFrame(rowType)) && (rowType != Material.PAINTING) && (rowType != Material.ARMOR_STAND)) {
+                                BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, parsedData, true);
                                 blockCount++;
                             }
                         }
@@ -189,27 +152,25 @@ public class RollbackProcessor {
                     boolean changeBlock = true;
                     boolean countBlock = true;
                     Material changeType = block.getType();
-                    BlockData changeBlockData = block.getBlockData();
-                    BlockData pendingChangeData = chunkChanges.get(block);
+                    byte changeBlockData = block.getData();
+                    byte[] pendingChange = chunkChanges.get(block);
                     Material pendingChangeType = changeType;
+                    byte pendingChangeData = changeBlockData;
 
-                    if (pendingChangeData != null) {
-                        pendingChangeType = pendingChangeData.getMaterial();
-                    }
-                    else {
-                        pendingChangeData = changeBlockData;
+                    if (pendingChange != null) {
+                        pendingChangeType = Material.getMaterial(pendingChange[0] & 0xFF);
+                        pendingChangeData = pendingChange[1];
                     }
 
                     if (rowRolledBack == 1 && rollbackType == 0) { // rollback
                         countBlock = false;
                     }
 
-                    if ((rowType == pendingChangeType) && ((!BukkitAdapter.ADAPTER.isItemFrame(oldTypeMaterial)) && (oldTypeMaterial != Material.PAINTING) && (oldTypeMaterial != Material.ARMOR_STAND)) && (oldTypeMaterial != Material.END_CRYSTAL)) {
+                    if ((rowType == pendingChangeType) && ((!BukkitAdapter.ADAPTER.isItemFrame(oldTypeMaterial)) && (oldTypeMaterial != Material.PAINTING) && (oldTypeMaterial != Material.ARMOR_STAND))) {
                         // block is already changed!
-                        BlockData checkData = rowType == Material.AIR ? blockData : rawBlockData;
-                        if (checkData != null) {
-                            if (checkData.getAsString().equals(pendingChangeData.getAsString()) || checkData instanceof org.bukkit.block.data.MultipleFacing || checkData instanceof org.bukkit.block.data.type.Stairs || checkData instanceof org.bukkit.block.data.type.RedstoneWire) {
-                                if (rowType != Material.CHEST && rowType != Material.TRAPPED_CHEST && !BukkitAdapter.ADAPTER.isCopperChest(rowType)) { // always update double chests
+                        if (rowType != Material.AIR) {
+                            if (rawData == pendingChangeData) {
+                                if (rowType != Material.CHEST && rowType != Material.TRAPPED_CHEST) {
                                     changeBlock = false;
                                 }
                             }
@@ -220,20 +181,11 @@ public class RollbackProcessor {
 
                         countBlock = false;
                     }
-                    else if ((pendingChangeType != Material.AIR) && (pendingChangeType != Material.CAVE_AIR)) {
+                    else if ((pendingChangeType != Material.AIR)) {
                         countBlock = true;
                     }
 
-                    if ((pendingChangeType == Material.WATER) && (rowType != Material.AIR) && (rowType != Material.CAVE_AIR) && blockData != null) {
-                        if (blockData instanceof org.bukkit.block.data.Waterlogged) {
-                            if (Material.WATER.createBlockData().equals(block.getBlockData())) {
-                                org.bukkit.block.data.Waterlogged waterlogged = (org.bukkit.block.data.Waterlogged) blockData;
-                                waterlogged.setWaterlogged(true);
-                            }
-                        }
-                    }
-
-                    if (RollbackBlockHandler.processBlockChange(bukkitWorld, block, row, rollbackType, clearInventories, chunkChanges, countBlock, oldTypeMaterial, pendingChangeType, pendingChangeData, finalUserString, rawBlockData, changeType, changeBlock, changeBlockData, meta != null ? new ArrayList<>(meta) : null, blockData, rowUser, rowType, rowX, rowY, rowZ, rowTypeRaw, rowData, rowAction, rowWorldId, BlockUtils.byteDataToString((byte[]) row[13], rowTypeRaw)) && countBlock) {
+                    if (RollbackBlockHandler.processBlockChange(bukkitWorld, block, row, rollbackType, clearInventories, chunkChanges, countBlock, oldTypeMaterial, pendingChangeType, pendingChangeData, finalUserString, rawData, changeType, changeBlock, changeBlockData, meta != null ? new ArrayList<>(meta) : null, parsedData, rowUser, rowType, rowX, rowY, rowZ, rowTypeRaw, rowData, rowAction, rowWorldId, BlockUtils.byteDataToString((byte[]) row[13], rowTypeRaw)) && countBlock) {
                         blockCount++;
                     }
                 }

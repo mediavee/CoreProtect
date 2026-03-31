@@ -6,7 +6,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EnderCrystal;
@@ -71,8 +71,8 @@ public final class EntityDamageByEntityListener extends Queue implements Listene
                         }
                     }
                 }
-                else if (damager instanceof AbstractArrow) {
-                    AbstractArrow arrow = (AbstractArrow) damager;
+                else if (damager instanceof Arrow) {
+                    Arrow arrow = (Arrow) damager;
                     ProjectileSource source = arrow.getShooter();
 
                     if (source instanceof Player) {
@@ -120,7 +120,7 @@ public final class EntityDamageByEntityListener extends Queue implements Listene
                     }
                     else if (entity instanceof EnderCrystal && Config.getConfig(entity.getWorld()).BLOCK_BREAK) {
                         EnderCrystal crystal = (EnderCrystal) event.getEntity();
-                        Queue.queueBlockBreak(user, block.getState(), Material.END_CRYSTAL, null, crystal.isShowingBottom() ? 1 : 0);
+                        Queue.queueBlockBreak(user, block.getState(), Material.AIR, null, 0);
                     }
                     else if (entity instanceof ArmorStand && Config.getConfig(entity.getWorld()).BLOCK_BREAK) {
                         // Do this here, as we're unable to read armor stand contents on EntityDeathEvent (in survival mode)

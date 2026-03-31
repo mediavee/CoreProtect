@@ -53,7 +53,7 @@ public class BlockUtil {
             // user placing sand/gravel. Find the bottom block
             int bottomfound = 0;
             while (bottomfound == 0) {
-                if (yc < BukkitAdapter.ADAPTER.getMinHeight(world)) {
+                if (yc < 0) {
                     block = world.getBlockAt(x, yc + 1, z);
                     bottomfound = 1;
                 }
@@ -62,10 +62,6 @@ public class BlockUtil {
                     Material down = block_down.getType();
                     if (!BukkitAdapter.ADAPTER.isInvisible(down) && !down.equals(Material.WATER) && !down.equals(Material.LAVA) && !down.equals(Material.SNOW)) {
                         block = world.getBlockAt(x, yc + 1, z);
-                        bottomfound = 1;
-                    }
-                    else if (down == Material.WATER && type.name().endsWith("_CONCRETE_POWDER")) {
-                        block = world.getBlockAt(x, yc, z);
                         bottomfound = 1;
                     }
                     else {

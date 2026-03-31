@@ -71,7 +71,6 @@ public class Config extends Language {
     public boolean TREE_GROWTH;
     public boolean MUSHROOM_GROWTH;
     public boolean VINE_GROWTH;
-    public boolean SCULK_SPREAD;
     public boolean PORTALS;
     public boolean WATER_FLOW;
     public boolean LAVA_FLOW;
@@ -230,7 +229,6 @@ public class Config extends Language {
         this.TREE_GROWTH = this.getBoolean("tree-growth");
         this.MUSHROOM_GROWTH = this.getBoolean("mushroom-growth");
         this.VINE_GROWTH = this.getBoolean("vine-growth");
-        this.SCULK_SPREAD = this.getBoolean("sculk-spread");
         this.PORTALS = this.getBoolean("portals");
         this.WATER_FLOW = this.getBoolean("water-flow");
         this.LAVA_FLOW = this.getBoolean("lava-flow");

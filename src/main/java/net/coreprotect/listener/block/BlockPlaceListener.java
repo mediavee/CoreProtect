@@ -8,13 +8,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.Bisected.Half;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Lightable;
-import org.bukkit.block.data.Waterlogged;
-import org.bukkit.block.data.type.Stairs;
-import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,10 +18,8 @@ import org.bukkit.inventory.ItemStack;
 import net.coreprotect.bukkit.BukkitAdapter;
 import net.coreprotect.config.Config;
 import net.coreprotect.consumer.Queue;
-import net.coreprotect.listener.player.InventoryChangeListener;
 import net.coreprotect.model.BlockGroup;
 import net.coreprotect.paper.PaperAdapter;
-import net.coreprotect.utility.BlockUtils;
 import net.coreprotect.utility.MaterialUtils;
 
 public final class BlockPlaceListener extends Queue implements Listener {
@@ -47,18 +38,7 @@ public final class BlockPlaceListener extends Queue implements Listener {
             int forceData = -1;
             boolean abort = false;
 
-            if (blockType == Material.LECTERN && blockReplaced.getType() == Material.LECTERN) {
-                // Placing a book in a lectern - log this as a new item being placed in the existing lectern
-                InventoryChangeListener.inventoryTransaction(player.getName(), blockLogged.getLocation(), new ItemStack[1]);
-                abort = true;
-            }
-            else if (MaterialUtils.listContains(BlockGroup.CONTAINERS, blockType) || MaterialUtils.listContains(BlockGroup.DIRECTIONAL_BLOCKS, blockType) || blockType.name().toUpperCase(Locale.ROOT).endsWith("_STAIRS")) {
-                BlockData blockData = blockPlaced.getBlockData();
-                Waterlogged waterlogged = BlockUtils.checkWaterlogged(blockData, blockReplaced);
-                if (waterlogged != null) {
-                    bBlockData = waterlogged.getAsString();
-                    blockReplaced = null;
-                }
+            if (MaterialUtils.listContains(BlockGroup.CONTAINERS, blockType) || MaterialUtils.listContains(BlockGroup.DIRECTIONAL_BLOCKS, blockType) || blockType.name().toUpperCase(Locale.ROOT).endsWith("_STAIRS")) {
                 Queue.queueBlockPlaceDelayed(player.getName(), blockLogged.getLocation(), blockLogged.getType(), bBlockData, blockReplaced, 0);
                 abort = true;
             }
@@ -67,14 +47,6 @@ public final class BlockPlaceListener extends Queue implements Listener {
                 Material itemType = item.getType();
 
                 if (!BlockGroup.FIRE.contains(itemType)) {
-                    abort = true;
-                }
-            }
-            else if (BlockGroup.LIGHTABLES.contains(blockType) && blockType == blockReplaced.getType()) {
-                // Lighting blocks is logged in BlockIgniteListener, extinguishing is logged in PlayerInteractListener
-                BlockData blockPlacedData = blockPlaced.getBlockData();
-                BlockData blockReplacedData = blockReplaced.getBlockData();
-                if (blockPlacedData instanceof Lightable && blockReplacedData instanceof Lightable && ((Lightable) blockPlacedData).isLit() != ((Lightable) blockReplacedData).isLit()) {
                     abort = true;
                 }
             }
@@ -88,22 +60,7 @@ public final class BlockPlaceListener extends Queue implements Listener {
                     }
                 }
 
-                BlockData blockData = blockLogged.getBlockData();
-                Waterlogged waterlogged = BlockUtils.checkWaterlogged(blockData, blockReplaced);
-                if (waterlogged != null) {
-                    bBlockData = waterlogged.getAsString();
-                    blockReplaced = null;
-                }
-
-                // fix for placed bisected blocks randomly returning the top or bottom of the block in this event
                 BlockState blockState = blockLogged.getState();
-                if (blockState.getBlockData() instanceof Bisected && !(blockState.getBlockData() instanceof Stairs || blockState.getBlockData() instanceof TrapDoor)) {
-                    if (((Bisected) blockState.getBlockData()).getHalf().equals(Half.TOP)) {
-                        if (blockPlaced.getY() > BukkitAdapter.ADAPTER.getMinHeight(world)) {
-                            blockState = blockPlaced.getWorld().getBlockAt(blockPlaced.getX(), blockPlaced.getY() - 1, blockPlaced.getZ()).getState();
-                        }
-                    }
-                }
 
                 Queue.queueBlockPlace(player.getName(), blockState, blockPlaced.getType(), blockReplaced, forceType, forceData, 0, bBlockData);
 

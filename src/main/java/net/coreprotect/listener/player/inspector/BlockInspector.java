@@ -38,7 +38,7 @@ public class BlockInspector extends BaseInspector {
                         if (blockState instanceof Sign && player.getGameMode() != GameMode.CREATIVE) {
                             Thread.sleep(1500);
                             Sign sign = (Sign) blockState;
-                            player.sendSignChange(sign.getLocation(), sign.getLines(), sign.getColor());
+                            player.sendSignChange(sign.getLocation(), sign.getLines());
                         }
                     }
                 }

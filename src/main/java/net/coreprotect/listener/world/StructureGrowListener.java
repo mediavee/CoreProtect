@@ -6,7 +6,6 @@ import java.util.Locale;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.TreeType;
 import org.bukkit.World;
 import org.bukkit.block.BlockState;
@@ -36,7 +35,7 @@ public final class StructureGrowListener extends Queue implements Listener {
         List<BlockState> blocks = event.getBlocks();
         if (blocks.size() <= 4) {
             for (BlockState block : blocks) {
-                if (Tag.SAPLINGS.isTagged(block.getType()) || block.getType().equals(Material.BROWN_MUSHROOM) || block.getType().equals(Material.RED_MUSHROOM)) {
+                if (block.getType() == Material.SAPLING || block.getType().equals(Material.BROWN_MUSHROOM) || block.getType().equals(Material.RED_MUSHROOM)) {
                     return;
                 }
             }

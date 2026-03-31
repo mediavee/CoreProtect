@@ -141,7 +141,7 @@ public final class HopperPullListener {
             return;
         }
 
-        Location destinationLocation = destinationHolder.getInventory().getLocation();
+        Location destinationLocation = getHolderLocation(destinationHolder);
         List<Object> list = ConfigHandler.transactingChest.get(destinationLocation.getWorld().getUID().toString() + "." + destinationLocation.getBlockX() + "." + destinationLocation.getBlockY() + "." + destinationLocation.getBlockZ());
         if (list != null) {
             list.add(new ItemStack[] { null, movedItem });
@@ -162,6 +162,16 @@ public final class HopperPullListener {
         }
 
         originalSource[inventoryContents.length] = movedItem;
-        InventoryChangeListener.onInventoryInteract(user, sourceInventory, originalSource, null, sourceInventory.getLocation(), true);
+        InventoryChangeListener.onInventoryInteract(user, sourceInventory, originalSource, null, getHolderLocation(sourceHolder), true);
+    }
+
+    private static Location getHolderLocation(InventoryHolder holder) {
+        if (holder instanceof org.bukkit.block.BlockState) {
+            return ((org.bukkit.block.BlockState) holder).getLocation();
+        }
+        else if (holder instanceof org.bukkit.block.DoubleChest) {
+            return ((org.bukkit.block.DoubleChest) holder).getLocation();
+        }
+        return null;
     }
 }

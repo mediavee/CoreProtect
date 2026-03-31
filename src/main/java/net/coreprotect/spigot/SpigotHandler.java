@@ -1,9 +1,12 @@
 package net.coreprotect.spigot;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Matcher;
 
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
 
 import net.coreprotect.config.Config;
 import net.coreprotect.utility.Chat;
@@ -15,64 +18,29 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.chat.hover.content.Text;
 
 public class SpigotHandler extends SpigotAdapter implements SpigotInterface {
 
-    public static ChatColor DARK_AQUA = ChatColor.of("#31b0e8");
-
     public SpigotHandler() {
-        Color.DARK_AQUA = SpigotHandler.DARK_AQUA.toString();
+        Color.DARK_AQUA = ChatColor.DARK_AQUA.toString();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void addHoverComponent(Object message, String[] data) {
         try {
             if (Config.getGlobal().HOVER_EVENTS) {
-                String tooltipText = data[1]; // text displayed inside tooltip
-                TextComponent component = new TextComponent(TextComponent.fromLegacyText(data[2]));
-                // BaseComponent[] displayComponent = TextComponent.fromLegacyText(processComponent(tooltipText));
-
-                if (tooltipText.contains(Color.MAGIC)) {
-                    tooltipText = tooltipText.replace(Color.MAGIC, "");
-
-                    // to-do
-                    /*
-                    ComponentBuilder formattedComponent = new ComponentBuilder();
-                    StringBuilder messageTest = new StringBuilder();
-                    String colorChar = String.valueOf(ChatColor.COLOR_CHAR);
-                    boolean isObfuscated = false;
-
-                    String[] tooltip = tooltipText.split(colorChar);
-                    for (String splitText : tooltip) {
-                        boolean setObfuscated = splitText.startsWith("k");
-                        splitText = setObfuscated ? splitText.substring(1) : (splitText.length() > 0 ? colorChar : "") + splitText;
-                        if ((setObfuscated && !isObfuscated) || (!setObfuscated && isObfuscated)) {
-                            formattedComponent.append(TextComponent.fromLegacyText(processComponent(messageTest.toString())));
-                            formattedComponent.obfuscated(false); // setObfuscated
-                            formattedComponent.append(TextComponent.fromLegacyText(processComponent(splitText)));
-                            messageTest.setLength(0);
-                            isObfuscated = !isObfuscated;
-                        }
-                        else {
-                            messageTest.append(splitText);
-                        }
-                    }
-
-                    if (messageTest.length() > 0) {
-                        formattedComponent.append(TextComponent.fromLegacyText(processComponent(messageTest.toString())));
-                    }
-
-                    displayComponent = formattedComponent.create();
-                    */
-                }
-
+                String tooltipText = data[1];
                 BaseComponent[] displayComponent = TextComponent.fromLegacyText(processComponent(tooltipText));
-                component.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(displayComponent)));
-                ((TextComponent) message).addExtra(component);
+                BaseComponent[] textParts = TextComponent.fromLegacyText(data[2]);
+                for (BaseComponent part : textParts) {
+                    part.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, displayComponent));
+                }
+                Collections.addAll((List<BaseComponent>) message, textParts);
             }
             else {
-                super.addHoverComponent(message, data);
+                BaseComponent[] textParts = TextComponent.fromLegacyText(data[2]);
+                Collections.addAll((List<BaseComponent>) message, textParts);
             }
         }
         catch (Exception e) {
@@ -83,25 +51,22 @@ public class SpigotHandler extends SpigotAdapter implements SpigotInterface {
     @Override
     public void setHoverEvent(Object component, String text) {
         if (Config.getGlobal().HOVER_EVENTS) {
-            ((TextComponent) component).setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(TextComponent.fromLegacyText(text))));
+            ((TextComponent) component).setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText(text)));
         }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void sendComponent(CommandSender sender, String string, String bypass) {
-        TextComponent message = new TextComponent();
+        List<BaseComponent> parts = new ArrayList<>();
         StringBuilder builder = new StringBuilder();
-
-        if (sender instanceof ConsoleCommandSender) {
-            string = string.replace(SpigotHandler.DARK_AQUA.toString(), ChatColor.DARK_AQUA.toString());
-        }
 
         Matcher matcher = Util.tagParser.matcher(string);
         while (matcher.find()) {
             String value = matcher.group(1);
             if (value != null) {
                 if (builder.length() > 0) {
-                    addBuilder(message, builder);
+                    flushBuilder(parts, builder);
                 }
 
                 String[] data = value.split("\\|", 3);
@@ -109,10 +74,10 @@ public class SpigotHandler extends SpigotAdapter implements SpigotInterface {
                     TextComponent component = new TextComponent(TextComponent.fromLegacyText(data[2]));
                     component.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, data[1]));
                     SpigotAdapter.ADAPTER.setHoverEvent(component, StringUtils.hoverCommandFilter(data[1]));
-                    message.addExtra(component);
+                    parts.add(component);
                 }
                 else if (data[0].equals(Chat.COMPONENT_POPUP)) {
-                    SpigotAdapter.ADAPTER.addHoverComponent(message, data);
+                    SpigotAdapter.ADAPTER.addHoverComponent(parts, data);
                 }
             }
             else {
@@ -121,30 +86,26 @@ public class SpigotHandler extends SpigotAdapter implements SpigotInterface {
         }
 
         if (builder.length() > 0) {
-            addBuilder(message, builder);
+            flushBuilder(parts, builder);
         }
 
         if (bypass != null) {
-            message.addExtra(bypass);
+            TextComponent bypassComponent = new TextComponent(bypass);
+            bypassComponent.setColor(ChatColor.WHITE);
+            parts.add(bypassComponent);
         }
 
-        sender.spigot().sendMessage(message);
+        BaseComponent[] result = parts.toArray(new BaseComponent[0]);
+        if (sender instanceof Player) {
+            ((Player) sender).spigot().sendMessage(result);
+        }
+        else {
+            sender.sendMessage(TextComponent.toLegacyText(result));
+        }
     }
 
-    private static void addBuilder(TextComponent message, StringBuilder builder) {
-        String[] splitBuilder = builder.toString().split(SpigotHandler.DARK_AQUA.toString());
-        for (int i = 0; i < splitBuilder.length; i++) {
-            if (i > 0) {
-                TextComponent textComponent = new TextComponent(splitBuilder[i]);
-                textComponent.setColor(SpigotHandler.DARK_AQUA);
-                message.addExtra(textComponent);
-            }
-            else {
-                message.addExtra(splitBuilder[i]);
-            }
-        }
-
+    private static void flushBuilder(List<BaseComponent> parts, StringBuilder builder) {
+        Collections.addAll(parts, TextComponent.fromLegacyText(builder.toString()));
         builder.setLength(0);
     }
-
 }

@@ -26,6 +26,7 @@ public final class PlayerInteractUtils {
         CacheHandler.interactCache.put(coordinates, new Object[] { time, Material.DRAGON_EGG, player.getName() });
     }
 
+    @SuppressWarnings("deprecation")
     public static void handleBisectedBlockVisualization(Player player, Block block, World world) {
         int x = block.getX();
         int y = block.getY();
@@ -34,22 +35,21 @@ public final class PlayerInteractUtils {
         int worldMaxHeight = world.getMaxHeight();
         if (y < (worldMaxHeight - 1)) {
             Block y1 = world.getBlockAt(x, y + 1, z);
-            player.sendBlockChange(y1.getLocation(), y1.getBlockData());
+            player.sendBlockChange(y1.getLocation(), y1.getType(), y1.getData());
         }
 
-        int worldMinHeight = net.coreprotect.bukkit.BukkitAdapter.ADAPTER.getMinHeight(world);
-        if (y > worldMinHeight) {
+        if (y > 0) {
             Block y2 = world.getBlockAt(x, y - 1, z);
-            player.sendBlockChange(y2.getLocation(), y2.getBlockData());
+            player.sendBlockChange(y2.getLocation(), y2.getType(), y2.getData());
         }
 
         Block x1 = world.getBlockAt(x + 1, y, z);
         Block x2 = world.getBlockAt(x - 1, y, z);
         Block z1 = world.getBlockAt(x, y, z + 1);
         Block z2 = world.getBlockAt(x, y, z - 1);
-        player.sendBlockChange(x1.getLocation(), x1.getBlockData());
-        player.sendBlockChange(x2.getLocation(), x2.getBlockData());
-        player.sendBlockChange(z1.getLocation(), z1.getBlockData());
-        player.sendBlockChange(z2.getLocation(), z2.getBlockData());
+        player.sendBlockChange(x1.getLocation(), x1.getType(), x1.getData());
+        player.sendBlockChange(x2.getLocation(), x2.getType(), x2.getData());
+        player.sendBlockChange(z1.getLocation(), z1.getType(), z1.getData());
+        player.sendBlockChange(z2.getLocation(), z2.getType(), z2.getData());
     }
 }

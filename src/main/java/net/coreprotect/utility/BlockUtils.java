@@ -2,9 +2,11 @@ package net.coreprotect.utility;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.Material;
 import org.bukkit.block.Banner;
@@ -12,12 +14,9 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.CommandBlock;
 import org.bukkit.block.Jukebox;
-import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.banner.Pattern;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Waterlogged;
-import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import net.coreprotect.CoreProtect;
@@ -26,33 +25,43 @@ import net.coreprotect.thread.Scheduler;
 
 public class BlockUtils {
 
-    private static final String NAMESPACE = "minecraft:";
+    private static final Set<Material> PASSABLE_MATERIALS = new HashSet<>(Arrays.asList(
+        Material.AIR, Material.SAPLING, Material.WATER, Material.STATIONARY_WATER,
+        Material.LAVA, Material.STATIONARY_LAVA, Material.YELLOW_FLOWER, Material.RED_ROSE,
+        Material.BROWN_MUSHROOM, Material.RED_MUSHROOM, Material.TORCH, Material.FIRE,
+        Material.REDSTONE_WIRE, Material.CROPS, Material.SIGN_POST, Material.WALL_SIGN,
+        Material.LEVER, Material.STONE_PLATE, Material.WOOD_PLATE,
+        Material.REDSTONE_TORCH_OFF, Material.REDSTONE_TORCH_ON,
+        Material.STONE_BUTTON, Material.SNOW, Material.SUGAR_CANE_BLOCK,
+        Material.PORTAL, Material.DIODE_BLOCK_OFF, Material.DIODE_BLOCK_ON,
+        Material.TRIPWIRE_HOOK, Material.TRIPWIRE, Material.FLOWER_POT,
+        Material.CARROT, Material.POTATO, Material.WOOD_BUTTON,
+        Material.GOLD_PLATE, Material.IRON_PLATE, Material.REDSTONE_COMPARATOR_OFF,
+        Material.REDSTONE_COMPARATOR_ON, Material.ACTIVATOR_RAIL, Material.RAILS,
+        Material.POWERED_RAIL, Material.DETECTOR_RAIL, Material.CARPET,
+        Material.LONG_GRASS, Material.DEAD_BUSH, Material.VINE,
+        Material.WATER_LILY, Material.NETHER_WARTS, Material.WEB,
+        Material.LADDER, Material.STRING
+    ));
 
     private BlockUtils() {
         throw new IllegalStateException("Utility class");
     }
 
+    /**
+     * Convert a blockdata string to byte array for DB storage.
+     * In 1.8, this is only used for paintings/item frames (art name/rotation).
+     * Normal blocks use just the data byte in the 'data' column.
+     */
     public static byte[] stringToByteData(String string, int type) {
         byte[] result = null;
-        if (string != null) {
+        if (string != null && !string.isEmpty()) {
             Material material = MaterialUtils.getType(type);
             if (material == null) {
                 return result;
             }
 
-            if (material.isBlock() && !createBlockData(material).getAsString().equals(string) && string.startsWith(NAMESPACE + material.name().toLowerCase(Locale.ROOT) + "[") && string.endsWith("]")) {
-                String substring = string.substring(material.name().length() + 11, string.length() - 1);
-                String[] blockDataSplit = substring.split(",");
-                ArrayList<String> blockDataArray = new ArrayList<>();
-                for (String data : blockDataSplit) {
-                    int id = MaterialUtils.getBlockdataId(data, true);
-                    if (id > -1) {
-                        blockDataArray.add(Integer.toString(id));
-                    }
-                }
-                string = String.join(",", blockDataArray);
-            }
-            else if (!string.contains(":") && (material == Material.PAINTING || BukkitAdapter.ADAPTER.isItemFrame(material))) {
+            if (material == Material.PAINTING || BukkitAdapter.ADAPTER.isItemFrame(material)) {
                 int id = MaterialUtils.getBlockdataId(string, true);
                 if (id > -1) {
                     string = Integer.toString(id);
@@ -60,6 +69,9 @@ public class BlockUtils {
                 else {
                     return result;
                 }
+            }
+            else if (material == Material.SKULL) {
+                // Store raw data byte as-is for skull rotation
             }
             else {
                 return result;
@@ -71,6 +83,10 @@ public class BlockUtils {
         return result;
     }
 
+    /**
+     * Convert stored byte data back to a string.
+     * In 1.8, this is used for paintings/item frames and skull rotation.
+     */
     public static String byteDataToString(byte[] data, int type) {
         String result = "";
         if (data != null) {
@@ -80,6 +96,9 @@ public class BlockUtils {
             }
 
             result = new String(data, StandardCharsets.UTF_8);
+            if (material == Material.SKULL) {
+                return result;
+            }
             if (result.length() > 0) {
                 if (result.matches("\\d+")) {
                     result = result + ",";
@@ -94,12 +113,7 @@ public class BlockUtils {
                         }
                     }
 
-                    if (material == Material.PAINTING || BukkitAdapter.ADAPTER.isItemFrame(material)) {
-                        result = String.join(",", blockDataArray);
-                    }
-                    else {
-                        result = NAMESPACE + material.name().toLowerCase(Locale.ROOT) + "[" + String.join(",", blockDataArray) + "]";
-                    }
+                    result = String.join(",", blockDataArray);
                 }
                 else {
                     result = "";
@@ -110,19 +124,8 @@ public class BlockUtils {
         return result;
     }
 
-    public static Waterlogged checkWaterlogged(BlockData blockData, BlockState blockReplacedState) {
-        if (blockReplacedState.getType().equals(Material.WATER) && blockData instanceof Waterlogged) {
-            if (blockReplacedState.getBlockData().equals(Material.WATER.createBlockData())) {
-                Waterlogged waterlogged = (Waterlogged) blockData;
-                waterlogged.setWaterlogged(true);
-                return waterlogged;
-            }
-        }
-        return null;
-    }
-
     public static boolean isAir(Material type) {
-        return (type == Material.AIR || type == Material.CAVE_AIR || type == Material.VOID_AIR);
+        return type == Material.AIR;
     }
 
     public static boolean solidBlock(Material type) {
@@ -130,16 +133,30 @@ public class BlockUtils {
     }
 
     public static boolean passableBlock(Block block) {
-        return block.isPassable();
+        return PASSABLE_MATERIALS.contains(block.getType());
     }
 
     public static Material getType(Block block) {
-        // Temp code
         return block.getType();
     }
 
+    @SuppressWarnings("deprecation")
+    public static byte getBlockData(Block block) {
+        return block.getData();
+    }
+
+    @SuppressWarnings("deprecation")
+    public static byte getBlockData(BlockState state) {
+        return state.getRawData();
+    }
+
+    public static String getBlockDataString(BlockState blockState) {
+        // In 1.8, return null - block states are captured by data byte
+        return null;
+    }
+
     public static boolean iceBreakCheck(BlockState block, String user, Material type) {
-        if (type.equals(Material.ICE)) { // Ice block
+        if (type.equals(Material.ICE)) {
             int unixtimestamp = (int) (System.currentTimeMillis() / 1000L);
             int wid = WorldUtils.getWorldId(block.getWorld().getName());
             net.coreprotect.thread.CacheHandler.lookupCache.put("" + block.getX() + "." + block.getY() + "." + block.getZ() + "." + wid + "", new Object[] { unixtimestamp, user, Material.WATER });
@@ -148,53 +165,28 @@ public class BlockUtils {
         return false;
     }
 
-    public static BlockData createBlockData(Material material) {
-        try {
-            BlockData result = material.createBlockData();
-            if (result instanceof Waterlogged) {
-                ((Waterlogged) result).setWaterlogged(false);
-            }
-            return result;
-        }
-        catch (Exception e) {
-            return null;
-        }
-    }
-
-    public static void prepareTypeAndData(Map<Block, BlockData> map, Block block, Material type, BlockData blockData, boolean update) {
-        if (blockData == null) {
-            blockData = createBlockData(type);
-        }
-
+    @SuppressWarnings("deprecation")
+    public static void prepareTypeAndData(Map<Block, byte[]> map, Block block, Material type, byte data, boolean update) {
         if (!update) {
-            setTypeAndData(block, type, blockData, update);
+            setTypeAndData(block, type, data, update);
             map.remove(block);
         }
         else {
-            map.put(block, blockData);
+            map.put(block, new byte[] { (byte) type.getId(), data });
         }
     }
 
-    public static void setTypeAndData(Block block, Material type, BlockData blockData, boolean update) {
-        if (blockData == null && type != null) {
-            blockData = createBlockData(type);
-        }
-
-        if (blockData != null) {
-            block.setBlockData(blockData, update);
+    @SuppressWarnings("deprecation")
+    public static void setTypeAndData(Block block, Material type, byte data, boolean update) {
+        if (type != null) {
+            block.setTypeIdAndData(type.getId(), data, update);
         }
     }
 
     public static void updateBlock(final BlockState block) {
         Scheduler.runTask(CoreProtect.getInstance(), () -> {
             try {
-                if (block.getBlockData() instanceof Waterlogged) {
-                    Block currentBlock = block.getBlock();
-                    if (currentBlock.getType().equals(block.getType())) {
-                        block.setBlockData(currentBlock.getBlockData());
-                    }
-                }
-                block.update();
+                block.update(true, false);
             }
             catch (Exception e) {
                 e.printStackTrace();
@@ -205,17 +197,12 @@ public class BlockUtils {
     public static Inventory getContainerInventory(BlockState blockState, boolean singleBlock) {
         Inventory inventory = null;
         try {
-            if (blockState instanceof BlockInventoryHolder) {
-                if (singleBlock) {
-                    List<Material> chests = new java.util.ArrayList<>(java.util.Arrays.asList(Material.CHEST, Material.TRAPPED_CHEST));
-                    chests.addAll(BukkitAdapter.ADAPTER.copperChestMaterials());
-                    Material type = blockState.getType();
-                    if (chests.contains(type)) {
-                        inventory = ((org.bukkit.block.Chest) blockState).getBlockInventory();
-                    }
+            if (blockState instanceof InventoryHolder) {
+                if (singleBlock && blockState instanceof org.bukkit.block.Chest) {
+                    inventory = ((org.bukkit.block.Chest) blockState).getBlockInventory();
                 }
                 if (inventory == null) {
-                    inventory = ((BlockInventoryHolder) blockState).getInventory();
+                    inventory = ((InventoryHolder) blockState).getInventory();
                 }
             }
         }
@@ -243,18 +230,6 @@ public class BlockUtils {
                     meta.add(pattern.serialize());
                 }
             }
-            else if (block instanceof ShulkerBox) {
-                ShulkerBox shulkerBox = (ShulkerBox) block;
-                ItemStack[] inventory = shulkerBox.getSnapshotInventory().getStorageContents();
-                int slot = 0;
-                for (ItemStack itemStack : inventory) {
-                    Map<Integer, Object> itemMap = ItemUtils.serializeItemStackLegacy(itemStack, null, slot);
-                    if (itemMap.size() > 0) {
-                        meta.add(itemMap);
-                    }
-                    slot++;
-                }
-            }
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -269,7 +244,7 @@ public class BlockUtils {
     public static ItemStack[] getJukeboxItem(Jukebox blockState) {
         ItemStack[] contents = null;
         try {
-            contents = new ItemStack[] { blockState.getRecord() };
+            contents = new ItemStack[] { blockState.getPlaying() != null && blockState.getPlaying() != Material.AIR ? new ItemStack(blockState.getPlaying()) : null };
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -277,21 +252,38 @@ public class BlockUtils {
         return contents;
     }
 
+    /**
+     * In 1.8, signs don't have glow state. Kept for API compatibility.
+     */
     public static int getSignData(boolean frontGlowing, boolean backGlowing) {
-        if (frontGlowing && backGlowing) {
-            return 3;
-        }
-        else if (backGlowing) {
-            return 2;
-        }
-        else if (frontGlowing) {
-            return 1;
-        }
-
         return 0;
     }
 
     public static boolean isSideGlowing(boolean isFront, int data) {
-        return ((isFront && (data == 1 || data == 3)) || (!isFront && (data == 2 || data == 3)));
+        return false;
+    }
+
+    /**
+     * Check if a door data byte represents the top half.
+     */
+    @SuppressWarnings("deprecation")
+    public static boolean isDoorTopHalf(BlockState state) {
+        return (state.getRawData() & 0x8) != 0;
+    }
+
+    /**
+     * Check if a bed data byte represents the head part.
+     */
+    @SuppressWarnings("deprecation")
+    public static boolean isBedHead(BlockState state) {
+        return (state.getRawData() & 0x8) != 0;
+    }
+
+    /**
+     * Check if a double-plant data byte represents the top half.
+     */
+    @SuppressWarnings("deprecation")
+    public static boolean isDoublePlantTop(BlockState state) {
+        return (state.getRawData() & 0x8) != 0;
     }
 }

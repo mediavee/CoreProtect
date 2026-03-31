@@ -189,7 +189,7 @@ public class RollbackRestoreCommand {
 
                 argExclude.put(Material.FIRE, false);
                 argExclude.put(Material.WATER, false);
-                argExclude.put(Material.FARMLAND, false);
+                argExclude.put(Material.SOIL, false);
                 argExcludeUsers.add("#hopper");
             }
             else if (!argAction.contains(4) && Config.getGlobal().EXCLUDE_TNT && !argExclude.containsKey(Material.TNT) && !argBlocks.contains(Material.TNT)) {

@@ -9,10 +9,6 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.CreatureSpawner;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.Bisected.Half;
-import org.bukkit.block.data.type.Bed;
-import org.bukkit.block.data.type.Bed.Part;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -99,33 +95,34 @@ public class Queue {
         }, block.getLocation(), ticks);
     }
 
+    @SuppressWarnings("deprecation")
     protected static void queueBlockBreak(String user, BlockState block, Material type, String blockData, Material breakType, int extraData, int blockNumber) {
-        if (type == Material.SPAWNER && block instanceof CreatureSpawner) { // Mob spawner
+        if (type == Material.MOB_SPAWNER && block instanceof CreatureSpawner) { // Mob spawner
             CreatureSpawner mobSpawner = (CreatureSpawner) block;
             extraData = EntityUtils.getSpawnerType(mobSpawner.getSpawnedType());
         }
-        else if (type == Material.IRON_DOOR || BlockGroup.DOORS.contains(type) || type.equals(Material.SUNFLOWER) || type.equals(Material.LILAC) || type.equals(Material.TALL_GRASS) || type.equals(Material.LARGE_FERN) || type.equals(Material.ROSE_BUSH) || type.equals(Material.PEONY)) { // Double plant
-            if (block.getBlockData() instanceof Bisected) {
-                if (((Bisected) block.getBlockData()).getHalf().equals(Half.TOP)) {
-                    if (blockNumber == 5) {
+        else if (type.equals(Material.DOUBLE_PLANT)) { // Double plant top → redirect to bottom
+            if (BlockUtils.isDoublePlantTop(block)) {
+                if (blockNumber == 5) {
+                    return;
+                }
+
+                if (block.getY() > 0) {
+                    block = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ()).getState();
+                    if (type != block.getType()) {
                         return;
                     }
 
-                    if (block.getY() > BukkitAdapter.ADAPTER.getMinHeight(block.getWorld())) {
-                        block = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ()).getState();
-                        if (type != block.getType()) {
-                            return;
-                        }
-
-                        blockData = block.getBlockData().getAsString();
-                    }
+                    blockData = null;
                 }
             }
+            extraData = block.getRawData();
         }
-        else if (type.name().endsWith("_BED") && block.getBlockData() instanceof Bed) {
-            if (((Bed) block.getBlockData()).getPart().equals(Part.HEAD)) {
-                return;
-            }
+        else if (type == Material.BED_BLOCK && BlockUtils.isBedHead(block)) {
+            return;
+        }
+        else {
+            extraData = block.getRawData();
         }
 
         int currentConsumer = Consumer.currentConsumer;
@@ -141,7 +138,7 @@ public class Queue {
         Material replaceType = null;
         int replaceData = 0;
 
-        if (type == Material.SPAWNER && blockLocation instanceof CreatureSpawner) { // Mob spawner
+        if (type == Material.MOB_SPAWNER && blockLocation instanceof CreatureSpawner) { // Mob spawner
             CreatureSpawner mobSpawner = (CreatureSpawner) blockLocation;
             data = EntityUtils.getSpawnerType(mobSpawner.getSpawnedType());
             forceData = 1;
@@ -151,10 +148,10 @@ public class Queue {
             replaceType = blockReplaced.getType();
             replaceData = 0;
 
-            if ((replaceType == Material.IRON_DOOR || BlockGroup.DOORS.contains(replaceType) || replaceType.equals(Material.SUNFLOWER) || replaceType.equals(Material.LILAC) || replaceType.equals(Material.TALL_GRASS) || replaceType.equals(Material.LARGE_FERN) || replaceType.equals(Material.ROSE_BUSH) || replaceType.equals(Material.PEONY)) && replaceData >= 8) { // Double plant top half
+            if ((replaceType == Material.IRON_DOOR_BLOCK || BlockGroup.DOORS.contains(replaceType) || replaceType.equals(Material.DOUBLE_PLANT)) && BlockUtils.isDoublePlantTop(blockReplaced)) { // Double plant top half
                 BlockState blockBelow = blockReplaced.getWorld().getBlockAt(blockReplaced.getX(), blockReplaced.getY() - 1, blockReplaced.getZ()).getState();
                 Material belowType = blockBelow.getType();
-                Queue.queueBlockBreak(user, blockBelow, belowType, blockBelow.getBlockData().getAsString(), 0);
+                Queue.queueBlockBreak(user, blockBelow, belowType, null, 0);
             }
         }
 
@@ -169,9 +166,6 @@ public class Queue {
         }
 
         String replacedBlockData = null;
-        if (blockReplaced != null) {
-            replacedBlockData = blockReplaced.getBlockData().getAsString();
-        }
 
         int currentConsumer = Consumer.currentConsumer;
         int consumerId = Consumer.newConsumerId(currentConsumer);

@@ -32,7 +32,7 @@ class StructureGrowthProcess {
                 int count = 0;
                 for (BlockState blockState : blockStates) {
                     if (count < replaceBlockCount) {
-                        BlockBreakLogger.log(preparedStmt, batchCount, user, blockState.getLocation(), MaterialUtils.getBlockId(blockState.getType()), 0, null, blockState.getBlockData().getAsString(), null);
+                        BlockBreakLogger.log(preparedStmt, batchCount, user, blockState.getLocation(), MaterialUtils.getBlockId(blockState.getType()), blockState.getRawData(), null, null, null);
                     }
                     else {
                         BlockPlaceLogger.log(preparedStmt, batchCount, user, blockState, 0, 0, null, -1, false, null, null, null);

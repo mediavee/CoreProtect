@@ -9,16 +9,12 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 import net.coreprotect.CoreProtect;
-import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.model.BlockGroup;
-import net.coreprotect.paper.PaperAdapter;
 import net.coreprotect.thread.Scheduler;
-import net.coreprotect.utility.BlockUtils;
 
 public class Teleport {
 
@@ -26,8 +22,9 @@ public class Teleport {
         throw new IllegalStateException("Utility class");
     }
 
-    public static ConcurrentHashMap<Location, BlockData> revertBlocks = new ConcurrentHashMap<>();
+    public static ConcurrentHashMap<Location, int[]> revertBlocks = new ConcurrentHashMap<>();
 
+    @SuppressWarnings("deprecation")
     public static void performSafeTeleport(Player player, Location location, boolean enforceTeleport) {
         try {
             Set<Material> unsafeBlocks = new HashSet<>(Arrays.asList(Material.LAVA));
@@ -66,18 +63,13 @@ public class Teleport {
                             if (checkY < worldHeight && unsafeBlocks.contains(blockBelow.getType())) {
                                 alert = true;
                                 Location revertLocation = block1.getLocation();
-                                BlockData revertBlockData = block1.getBlockData();
-                                revertBlocks.put(revertLocation, revertBlockData);
-                                if (!ConfigHandler.isFolia) {
-                                    block1.setType(Material.BARRIER);
-                                }
-                                else {
-                                    block1.setType(Material.DIRT);
-                                }
+                                int[] revertBlockInfo = new int[] { block1.getTypeId(), block1.getData() };
+                                revertBlocks.put(revertLocation, revertBlockInfo);
+                                block1.setType(Material.BARRIER);
                                 checkY++;
 
                                 Scheduler.scheduleSyncDelayedTask(CoreProtect.getInstance(), () -> {
-                                    block1.setBlockData(revertBlockData);
+                                    block1.setTypeIdAndData(revertBlockInfo[0], (byte) revertBlockInfo[1], true);
                                     revertBlocks.remove(revertLocation);
                                 }, revertLocation, 1200);
                             }
@@ -100,12 +92,7 @@ public class Teleport {
 
                     double oldY = location.getY();
                     location.setY(checkY);
-                    if (ConfigHandler.isFolia) {
-                        PaperAdapter.ADAPTER.teleportAsync(player, location);
-                    }
-                    else {
-                        player.teleport(location);
-                    }
+                    player.teleport(location);
 
                     if (!enforceTeleport) {
                         // Only send a message if the player was moved by at least 1 block

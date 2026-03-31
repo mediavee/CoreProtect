@@ -3,7 +3,7 @@ package net.coreprotect.utility;
 import java.util.regex.Pattern;
 
 import org.bukkit.Location;
-import org.bukkit.block.data.BlockData;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 import net.coreprotect.consumer.Queue;
@@ -20,7 +20,8 @@ public class Util extends Queue {
         throw new IllegalStateException("Utility class");
     }
 
-    public static void sendBlockChange(Player player, Location location, BlockData blockData) {
-        player.sendBlockChange(location, blockData);
+    @SuppressWarnings("deprecation")
+    public static void sendBlockChange(Player player, Location location, Material material, byte data) {
+        player.sendBlockChange(location, material, data);
     }
 }

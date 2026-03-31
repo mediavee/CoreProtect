@@ -1,13 +1,8 @@
 package net.coreprotect.thread;
 
-import java.util.concurrent.TimeUnit;
-
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.scheduler.BukkitTask;
 
 import net.coreprotect.CoreProtect;
-import net.coreprotect.config.ConfigHandler;
 
 public class Scheduler {
 
@@ -16,79 +11,24 @@ public class Scheduler {
     }
 
     public static void scheduleSyncDelayedTask(CoreProtect plugin, Runnable task, Object regionData, int delay) {
-        if (ConfigHandler.isFolia) {
-            if (regionData instanceof Location) {
-                Location location = (Location) regionData;
-                if (delay == 0) {
-                    plugin.getServer().getRegionScheduler().run(plugin, location, value -> task.run());
-                }
-                else {
-                    plugin.getServer().getRegionScheduler().runDelayed(plugin, location, value -> task.run(), delay);
-                }
-            }
-            else if (regionData instanceof Entity) {
-                Entity entity = (Entity) regionData;
-                if (delay == 0) {
-                    entity.getScheduler().run(plugin, value -> task.run(), task);
-                }
-                else {
-                    entity.getScheduler().runDelayed(plugin, value -> task.run(), task, delay);
-                }
-            }
-            else {
-                if (delay == 0) {
-                    plugin.getServer().getGlobalRegionScheduler().run(plugin, value -> task.run());
-                }
-                else {
-                    plugin.getServer().getGlobalRegionScheduler().runDelayed(plugin, value -> task.run(), delay);
-                }
-            }
+        if (delay == 0) {
+            plugin.getServer().getScheduler().runTask(plugin, task);
         }
         else {
-            if (delay == 0) {
-                plugin.getServer().getScheduler().runTask(plugin, task);
-            }
-            else {
-                plugin.getServer().getScheduler().runTaskLater(plugin, task, delay);
-            }
+            plugin.getServer().getScheduler().runTaskLater(plugin, task, delay);
         }
     }
 
     public static Object scheduleSyncRepeatingTask(CoreProtect plugin, Runnable task, Object regionData, int delay, int period) {
-        if (ConfigHandler.isFolia) {
-            if (regionData instanceof Location) {
-                Location location = (Location) regionData;
-                return plugin.getServer().getRegionScheduler().runAtFixedRate(plugin, location, value -> task.run(), delay, period);
-            }
-            else if (regionData instanceof Entity) {
-                Entity entity = (Entity) regionData;
-                return entity.getScheduler().runAtFixedRate(plugin, value -> task.run(), task, delay, period);
-            }
-            else {
-                return plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, value -> task.run(), delay, period);
-            }
-        }
-        else {
-            return plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, task, delay, period);
-        }
+        return plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, task, delay, period);
     }
 
     public static void scheduleAsyncDelayedTask(CoreProtect plugin, Runnable task, int delay) {
-        if (ConfigHandler.isFolia) {
-            if (delay == 0) {
-                plugin.getServer().getAsyncScheduler().runNow(plugin, value -> task.run());
-            }
-            else {
-                plugin.getServer().getAsyncScheduler().runDelayed(plugin, value -> task.run(), (delay * 50L), TimeUnit.MILLISECONDS);
-            }
+        if (delay == 0) {
+            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, task);
         }
         else {
-            if (delay == 0) {
-                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, task);
-            }
-            else {
-                plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, task, delay);
-            }
+            plugin.getServer().getScheduler().runTaskLaterAsynchronously(plugin, task, delay);
         }
     }
 
@@ -113,15 +53,12 @@ public class Scheduler {
     }
 
     public static void cancelTask(Object task) {
-        if (ConfigHandler.isFolia) {
-            if (task instanceof io.papermc.paper.threadedregions.scheduler.ScheduledTask) {
-                io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask = (io.papermc.paper.threadedregions.scheduler.ScheduledTask) task;
-                scheduledTask.cancel();
-            }
-        }
-        else if (task instanceof BukkitTask) {
+        if (task instanceof BukkitTask) {
             BukkitTask bukkitTask = (BukkitTask) task;
             bukkitTask.cancel();
+        }
+        else if (task instanceof Integer) {
+            CoreProtect.getInstance().getServer().getScheduler().cancelTask((Integer) task);
         }
     }
 }

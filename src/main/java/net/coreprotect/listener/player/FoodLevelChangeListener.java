@@ -50,16 +50,18 @@ public final class FoodLevelChangeListener extends Queue implements Listener {
                     }
                     final Material oldBlockType = oldType;
 
+                    @SuppressWarnings("deprecation")
+                    final byte oldData = oldBlockState.getRawData();
                     Scheduler.runTask(CoreProtect.getInstance(), () -> {
                         try {
                             Block newBlock = oldBlockState.getBlock();
                             BlockState newBlockState = newBlock.getState();
 
-                            if (!oldBlockState.getBlockData().matches(newBlockState.getBlockData())) {
-                                Queue.queueBlockBreak(player.getName(), oldBlockState, oldBlockState.getType(), oldBlockState.getBlockData().getAsString(), 0);
+                            if (oldData != newBlockState.getRawData() || oldBlockState.getType() != newBlockState.getType()) {
+                                Queue.queueBlockBreak(player.getName(), oldBlockState, oldBlockState.getType(), null, 0);
 
                                 if (oldBlockType == newBlockState.getType()) {
-                                    Queue.queueBlockPlace(player.getName(), newBlockState, newBlock.getType(), null, newBlockState.getType(), -1, 0, newBlockState.getBlockData().getAsString());
+                                    Queue.queueBlockPlace(player.getName(), newBlockState, newBlock.getType(), null, newBlockState.getType(), -1, 0, null);
                                 }
                             }
                         }

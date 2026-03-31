@@ -2,6 +2,7 @@ package net.coreprotect.listener.world;
 
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,10 +24,10 @@ public final class PortalCreateListener extends Queue implements Listener {
         }
 
         String user = "#portal";
-        for (BlockState block : event.getBlocks()) {
+        for (Block block : event.getBlocks()) {
             Material type = block.getType();
-            if (type == Material.NETHER_PORTAL || type == Material.FIRE) {
-                String resultData = Lookup.whoPlacedCache(block);
+            if (type == Material.PORTAL || type == Material.FIRE) {
+                String resultData = Lookup.whoPlacedCache(block.getState());
                 if (resultData.length() > 0) {
                     user = resultData;
                     break;
@@ -34,18 +35,14 @@ public final class PortalCreateListener extends Queue implements Listener {
             }
         }
 
-        for (BlockState blockState : event.getBlocks()) {
+        for (Block block : event.getBlocks()) {
+            BlockState blockState = block.getState();
             Material type = blockState.getType();
-            BlockState oldBlock = blockState.getBlock().getState();
-            if (oldBlock.equals(blockState)) {
-                continue;
-            }
-
             if (BlockUtils.isAir(type)) {
-                Queue.queueBlockBreak(user, oldBlock, oldBlock.getType(), oldBlock.getBlockData().getAsString(), 0);
+                Queue.queueBlockBreak(user, blockState, type, null, 0);
             }
             else {
-                Queue.queueBlockPlace(user, blockState, oldBlock.getType(), oldBlock, type, -1, 0, blockState.getBlockData().getAsString());
+                Queue.queueBlockPlace(user, blockState, type, blockState, type, -1, 0, null);
             }
         }
     }

@@ -5,13 +5,12 @@ import java.util.List;
 import java.util.Locale;
 
 import org.bukkit.Location;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
 import net.coreprotect.config.Config;
@@ -37,14 +36,9 @@ public final class EntityPickupItemListener extends Queue implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    protected void onEntityPickupItem(EntityPickupItemEvent event) {
-        if (event.getEntityType() != EntityType.PLAYER) {
-            return;
-        }
-
-        Player player = (Player) event.getEntity();
+    protected void onPlayerPickupItem(PlayerPickupItemEvent event) {
+        Player player = event.getPlayer();
         Item item = event.getItem();
         onItemPickup(player, item.getLocation(), item.getItemStack());
     }
-
 }

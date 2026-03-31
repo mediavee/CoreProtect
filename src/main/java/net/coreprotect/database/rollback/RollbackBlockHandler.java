@@ -10,27 +10,9 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Banner;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.CommandBlock;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.banner.Pattern;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.Bisected.Half;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.block.data.Waterlogged;
-import org.bukkit.block.data.type.Bed;
-import org.bukkit.block.data.type.Bed.Part;
-import org.bukkit.block.data.type.Chest;
-import org.bukkit.block.data.type.Door;
-import org.bukkit.block.data.type.Door.Hinge;
-import org.bukkit.block.data.type.Piston;
-import org.bukkit.block.data.type.PistonHead;
-import org.bukkit.block.data.type.RedstoneWire;
-import org.bukkit.block.data.type.Snow;
-import org.bukkit.block.data.type.Stairs;
-import org.bukkit.block.data.type.TechnicalPiston;
-import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EnderCrystal;
 import org.bukkit.entity.Entity;
@@ -54,27 +36,31 @@ import net.coreprotect.utility.entity.HangingUtil;
 
 public class RollbackBlockHandler extends Queue {
 
-    public static boolean processBlockChange(World bukkitWorld, Block block, Object[] row, int rollbackType, boolean clearInventories, Map<Block, BlockData> chunkChanges, boolean countBlock, Material oldTypeMaterial, Material pendingChangeType, BlockData pendingChangeData, String finalUserString, BlockData rawBlockData, Material changeType, boolean changeBlock, BlockData changeBlockData, ArrayList<Object> meta, BlockData blockData, String rowUser, Material rowType, int rowX, int rowY, int rowZ, int rowTypeRaw, int rowData, int rowAction, int rowWorldId, String blockDataString) {
+    @SuppressWarnings("deprecation")
+    public static boolean processBlockChange(World bukkitWorld, Block block, Object[] row, int rollbackType, boolean clearInventories, Map<Block, byte[]> chunkChanges, boolean countBlock, Material oldTypeMaterial, Material pendingChangeType, byte pendingChangeData, String finalUserString, byte rawBlockData, Material changeType, boolean changeBlock, byte changeBlockData, ArrayList<Object> meta, byte blockData, String rowUser, Material rowType, int rowX, int rowY, int rowZ, int rowTypeRaw, int rowData, int rowAction, int rowWorldId, String blockDataString) {
         int unixtimestamp = (int) (System.currentTimeMillis() / 1000L);
 
         try {
             if (changeBlock) {
-                /* If modifying the head of a piston, update the base piston block to prevent it from being destroyed */
-                if (changeBlockData instanceof PistonHead) {
-                    PistonHead pistonHead = (PistonHead) changeBlockData;
-                    Block pistonBlock = block.getRelative(pistonHead.getFacing().getOppositeFace());
-                    BlockData pistonData = pistonBlock.getBlockData();
-                    if (pistonData instanceof Piston) {
-                        Piston piston = (Piston) pistonData;
-                        piston.setExtended(false);
-                        pistonBlock.setBlockData(piston, false);
+                /* In 1.8, piston head / technical piston handling is simplified: just set the block type + data directly */
+                if (rowType == Material.PISTON_EXTENSION) {
+                    // Piston head being modified - retract the base piston
+                    int facing = changeBlockData & 0x7;
+                    Block pistonBlock = getPistonBase(block, facing);
+                    if (pistonBlock != null) {
+                        byte pistonData = pistonBlock.getData();
+                        Material pistonType = pistonBlock.getType();
+                        if (pistonType == Material.PISTON_BASE || pistonType == Material.PISTON_STICKY_BASE) {
+                            // Clear extended bit
+                            pistonBlock.setTypeIdAndData(pistonType.getId(), (byte) (pistonData & 0x7), false);
+                        }
                     }
                 }
-                else if (rowType == Material.MOVING_PISTON && blockData instanceof TechnicalPiston && !(blockData instanceof PistonHead)) {
-                    TechnicalPiston technicalPiston = (TechnicalPiston) blockData;
-                    rowType = (technicalPiston.getType() == org.bukkit.block.data.type.TechnicalPiston.Type.STICKY ? Material.STICKY_PISTON : Material.PISTON);
-                    blockData = rowType.createBlockData();
-                    ((Piston) blockData).setFacing(technicalPiston.getFacing());
+                else if (rowType == Material.PISTON_MOVING_PIECE) {
+                    // Moving piston - determine if sticky or regular
+                    boolean sticky = (blockData & 0x8) != 0;
+                    rowType = sticky ? Material.PISTON_STICKY_BASE : Material.PISTON_BASE;
+                    blockData = (byte) (blockData & 0x7); // keep facing only
                 }
 
                 if ((rowType == Material.AIR) && ((BukkitAdapter.ADAPTER.isItemFrame(oldTypeMaterial)) || (oldTypeMaterial == Material.PAINTING))) {
@@ -103,52 +89,17 @@ public class RollbackBlockHandler extends Queue {
                         PaperAdapter.ADAPTER.teleportAsync(entity, location1);
                     }
                 }
-                else if ((rowType == Material.END_CRYSTAL)) {
-                    Location location1 = block.getLocation();
-                    location1.setX(location1.getX() + 0.50);
-                    location1.setZ(location1.getZ() + 0.50);
-                    boolean exists = false;
-
-                    for (Entity entity : block.getChunk().getEntities()) {
-                        if (entity instanceof EnderCrystal) {
-                            if (entity.getLocation().getBlockX() == location1.getBlockX() && entity.getLocation().getBlockY() == location1.getBlockY() && entity.getLocation().getBlockZ() == location1.getBlockZ()) {
-                                exists = true;
-                            }
-                        }
-                    }
-
-                    if (!exists) {
-                        Entity entity = block.getLocation().getWorld().spawnEntity(location1, BukkitAdapter.ADAPTER.getEntityType(Material.END_CRYSTAL));
-                        EnderCrystal enderCrystal = (EnderCrystal) entity;
-                        enderCrystal.setShowingBottom((rowData != 0));
-                        PaperAdapter.ADAPTER.teleportAsync(entity, location1);
-                    }
-                }
+                // END_CRYSTAL handling removed (not available in 1.8)
                 else if ((rowType == Material.AIR) && ((oldTypeMaterial == Material.WATER))) {
-                    if (pendingChangeData instanceof Waterlogged) {
-                        Waterlogged waterlogged = (Waterlogged) pendingChangeData;
-                        waterlogged.setWaterlogged(false);
-                        BlockUtils.prepareTypeAndData(chunkChanges, block, null, waterlogged, false);
-                    }
-                    else {
-                        BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
-                    }
-
+                    // In 1.8, no waterlogged blocks exist - just set to air
+                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
                     return countBlock;
                 }
                 else if ((rowType == Material.AIR) && ((oldTypeMaterial == Material.SNOW))) {
                     BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
                     return countBlock;
                 }
-                else if ((rowType == Material.AIR) && ((oldTypeMaterial == Material.END_CRYSTAL))) {
-                    for (Entity entity : block.getChunk().getEntities()) {
-                        if (entity instanceof EnderCrystal) {
-                            if (entity.getLocation().getBlockX() == rowX && entity.getLocation().getBlockY() == rowY && entity.getLocation().getBlockZ() == rowZ) {
-                                entity.remove();
-                            }
-                        }
-                    }
-                }
+                // END_CRYSTAL removal handled above (not available in 1.8)
                 else if (rollbackType == 0 && rowAction == 0 && (rowType == Material.AIR)) {
                     // broke block ID #0
                 }
@@ -181,33 +132,17 @@ public class RollbackBlockHandler extends Queue {
                     }
 
                     boolean remove = true;
-                    if ((rowType == Material.AIR)) {
-                        if (pendingChangeData instanceof Waterlogged) {
-                            Waterlogged waterlogged = (Waterlogged) pendingChangeData;
-                            if (waterlogged.isWaterlogged()) {
-                                BlockUtils.prepareTypeAndData(chunkChanges, block, Material.WATER, Material.WATER.createBlockData(), true);
-                                remove = false;
-                            }
-                        }
-                        else if ((pendingChangeType == Material.WATER)) {
-                            if (rawBlockData instanceof Waterlogged) {
-                                Waterlogged waterlogged = (Waterlogged) rawBlockData;
-                                if (waterlogged.isWaterlogged()) {
-                                    remove = false;
-                                }
-                            }
-                        }
-                    }
+                    // In 1.8, no waterlogged blocks - simplified logic
 
                     if (remove) {
                         boolean physics = true;
-                        if ((changeType == Material.NETHER_PORTAL) || changeBlockData instanceof MultipleFacing || changeBlockData instanceof Snow || changeBlockData instanceof Stairs || changeBlockData instanceof RedstoneWire || changeBlockData instanceof Chest) {
-                            physics = true;
-                        }
-                        else if (changeBlockData instanceof Bisected && !(changeBlockData instanceof TrapDoor)) {
-                            Bisected bisected = (Bisected) changeBlockData;
+
+                        // Handle bisected blocks (doors, tall plants) - in 1.8, check if it's a door or double plant
+                        if (BlockGroup.DOORS.contains(changeType) || changeType == Material.IRON_DOOR_BLOCK) {
+                            // Door: remove both halves
+                            boolean isTopHalf = (changeBlockData & 0x8) != 0;
                             Location bisectLocation = block.getLocation().clone();
-                            if (bisected.getHalf() == Half.TOP) {
+                            if (isTopHalf) {
                                 bisectLocation.setY(bisectLocation.getY() - 1);
                             }
                             else {
@@ -215,32 +150,55 @@ public class RollbackBlockHandler extends Queue {
                             }
 
                             int worldMaxHeight = bukkitWorld.getMaxHeight();
-                            int worldMinHeight = BukkitAdapter.ADAPTER.getMinHeight(bukkitWorld);
-                            if (bisectLocation.getBlockY() >= worldMinHeight && bisectLocation.getBlockY() < worldMaxHeight) {
+                            if (bisectLocation.getBlockY() >= 0 && bisectLocation.getBlockY() < worldMaxHeight) {
                                 Block bisectBlock = block.getWorld().getBlockAt(bisectLocation);
-                                BlockUtils.prepareTypeAndData(chunkChanges, bisectBlock, rowType, null, false);
+                                BlockUtils.prepareTypeAndData(chunkChanges, bisectBlock, rowType, (byte) 0, false);
 
                                 if (countBlock) {
                                     updateBlockCount(finalUserString, 1);
                                 }
                             }
                         }
-                        else if (changeBlockData instanceof Bed) {
-                            Bed bed = (Bed) changeBlockData;
-                            if (bed.getPart() == Part.FOOT) {
-                                Block adjacentBlock = block.getRelative(bed.getFacing());
-                                BlockUtils.prepareTypeAndData(chunkChanges, adjacentBlock, rowType, null, false);
+                        else if (changeType == Material.DOUBLE_PLANT) {
+                            // Double plant: top half has data & 0x8 set
+                            boolean isTopHalf = (changeBlockData & 0x8) != 0;
+                            Location bisectLocation = block.getLocation().clone();
+                            if (isTopHalf) {
+                                bisectLocation.setY(bisectLocation.getY() - 1);
+                            }
+                            else {
+                                bisectLocation.setY(bisectLocation.getY() + 1);
+                            }
+
+                            int worldMaxHeight = bukkitWorld.getMaxHeight();
+                            if (bisectLocation.getBlockY() >= 0 && bisectLocation.getBlockY() < worldMaxHeight) {
+                                Block bisectBlock = block.getWorld().getBlockAt(bisectLocation);
+                                BlockUtils.prepareTypeAndData(chunkChanges, bisectBlock, rowType, (byte) 0, false);
+
+                                if (countBlock) {
+                                    updateBlockCount(finalUserString, 1);
+                                }
+                            }
+                        }
+                        else if (changeType.name().endsWith("_BED") || changeType == Material.BED_BLOCK) {
+                            // Bed: foot part (data & 0x8 == 0), get facing to find other half
+                            if ((changeBlockData & 0x8) == 0) {
+                                // This is the foot part, find head
+                                Block adjacentBlock = getBedHead(block, changeBlockData);
+                                if (adjacentBlock != null) {
+                                    BlockUtils.prepareTypeAndData(chunkChanges, adjacentBlock, rowType, (byte) 0, false);
+                                }
                             }
                         }
 
-                        BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, null, physics);
+                        BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, (byte) 0, physics);
                     }
 
                     return countBlock;
                 }
-                else if ((rowType == Material.SPAWNER)) {
+                else if ((rowType == Material.MOB_SPAWNER)) {
                     try {
-                        BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, false);
+                        BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, (byte) 0, false);
                         CreatureSpawner mobSpawner = (CreatureSpawner) block.getState();
                         mobSpawner.setSpawnedType(EntityUtils.getSpawnerType(rowData));
                         mobSpawner.update();
@@ -251,8 +209,17 @@ public class RollbackBlockHandler extends Queue {
                         // e.printStackTrace();
                     }
                 }
-                else if ((rowType == Material.SKELETON_SKULL) || (rowType == Material.SKELETON_WALL_SKULL) || (rowType == Material.WITHER_SKELETON_SKULL) || (rowType == Material.WITHER_SKELETON_WALL_SKULL) || (rowType == Material.ZOMBIE_HEAD) || (rowType == Material.ZOMBIE_WALL_HEAD) || (rowType == Material.PLAYER_HEAD) || (rowType == Material.PLAYER_WALL_HEAD) || (rowType == Material.CREEPER_HEAD) || (rowType == Material.CREEPER_WALL_HEAD) || (rowType == Material.DRAGON_HEAD) || (rowType == Material.DRAGON_WALL_HEAD)) { // skull
-                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, false);
+                else if (rowType == Material.SKULL) { // skull
+                    byte skullRotation = 0;
+                    if (blockDataString != null && !blockDataString.isEmpty()) {
+                        try {
+                            skullRotation = Byte.parseByte(blockDataString);
+                        }
+                        catch (NumberFormatException e) {
+                            // Ignore
+                        }
+                    }
+                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, skullRotation, false);
                     if (rowData > 0) {
                         Queue.queueSkullUpdate(rowUser, block.getState(), rowData);
                     }
@@ -281,7 +248,7 @@ public class RollbackBlockHandler extends Queue {
                     }
                     return false;
                 }
-                else if (rowType == Material.COMMAND_BLOCK || rowType == Material.REPEATING_COMMAND_BLOCK || rowType == Material.CHAIN_COMMAND_BLOCK) { // command block
+                else if (rowType == Material.COMMAND) { // command block
                     BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, false);
                     if (countBlock) {
                         updateBlockCount(finalUserString, 1);
@@ -299,90 +266,32 @@ public class RollbackBlockHandler extends Queue {
                     }
                     return false;
                 }
-                else if ((rowType == Material.WATER)) {
-                    if (pendingChangeData instanceof Waterlogged) {
-                        Waterlogged waterlogged = (Waterlogged) pendingChangeData;
-                        waterlogged.setWaterlogged(true);
-                        BlockUtils.prepareTypeAndData(chunkChanges, block, null, waterlogged, false);
-                    }
-                    else {
-                        BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, false);
-                    }
-
+                else if ((rowType == Material.WATER) || (rowType == Material.STATIONARY_WATER)) {
+                    // In 1.8, no waterlogged blocks - just place water
+                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, false);
                     return countBlock;
                 }
-                else if ((rowType == Material.NETHER_PORTAL) && rowAction == 0) {
-                    BlockUtils.prepareTypeAndData(chunkChanges, block, Material.FIRE, null, true);
+                else if ((rowType == Material.PORTAL) && rowAction == 0) {
+                    BlockUtils.prepareTypeAndData(chunkChanges, block, Material.FIRE, (byte) 0, true);
                 }
-                else if (blockData == null && rowData > 0 && (rowType == Material.IRON_DOOR || BlockGroup.DOORS.contains(rowType))) {
-                    if (countBlock) {
-                        updateBlockCount(finalUserString, 1);
+                else if (rowType != Material.AIR && (rowType == Material.BED_BLOCK || rowType.name().endsWith("_BED"))) {
+                    // Bed - place foot and head parts
+                    // Foot: bits 0-1 = facing, bit 3 = 0
+                    // Head: bits 0-1 = facing, bit 3 = 1
+                    boolean isHead = (blockData & 0x8) != 0;
+                    if (!isHead) {
+                        Block headBlock = getBedHead(block, blockData);
+                        if (headBlock != null) {
+                            byte headData = (byte) (blockData | 0x8);
+                            BlockUtils.prepareTypeAndData(chunkChanges, headBlock, rowType, headData, false);
+                            if (countBlock) {
+                                updateBlockCount(finalUserString, 1);
+                            }
+                        }
                     }
 
-                    block.setType(rowType, false);
-                    Door door = (Door) block.getBlockData();
-                    if (rowData >= 8) {
-                        door.setHalf(Half.TOP);
-                        rowData = rowData - 8;
-                    }
-                    else {
-                        door.setHalf(Half.BOTTOM);
-                    }
-                    if (rowData >= 4) {
-                        door.setHinge(Hinge.RIGHT);
-                        rowData = rowData - 4;
-                    }
-                    else {
-                        door.setHinge(Hinge.LEFT);
-                    }
-                    BlockFace face = BlockFace.NORTH;
-
-                    switch (rowData) {
-                        case 0:
-                            face = BlockFace.EAST;
-                            break;
-                        case 1:
-                            face = BlockFace.SOUTH;
-                            break;
-                        case 2:
-                            face = BlockFace.WEST;
-                            break;
-                    }
-
-                    door.setFacing(face);
-                    door.setOpen(false);
-                    block.setBlockData(door, false);
-                    return false;
-                }
-                else if (blockData == null && rowData > 0 && (rowType.name().endsWith("_BED"))) {
-                    if (countBlock) {
-                        updateBlockCount(finalUserString, 1);
-                    }
-
-                    block.setType(rowType, false);
-                    Bed bed = (Bed) block.getBlockData();
-                    BlockFace face = BlockFace.NORTH;
-
-                    if (rowData > 4) {
-                        bed.setPart(Part.HEAD);
-                        rowData = rowData - 4;
-                    }
-
-                    switch (rowData) {
-                        case 2:
-                            face = BlockFace.WEST;
-                            break;
-                        case 3:
-                            face = BlockFace.EAST;
-                            break;
-                        case 4:
-                            face = BlockFace.SOUTH;
-                            break;
-                    }
-
-                    bed.setFacing(face);
-                    block.setBlockData(bed, false);
-                    return false;
+                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
+                    return countBlock;
                 }
                 else if (rowType.name().endsWith("_BANNER")) {
                     BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, false);
@@ -411,67 +320,44 @@ public class RollbackBlockHandler extends Queue {
                 else if (rowType != changeType && (BlockGroup.CONTAINERS.contains(rowType) || BlockGroup.CONTAINERS.contains(changeType))) {
                     block.setType(Material.AIR); // Clear existing container to prevent errors
 
-                    boolean isChest = (blockData instanceof Chest);
-                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, (isChest));
+                    boolean isChest = (rowType == Material.CHEST || rowType == Material.TRAPPED_CHEST);
+                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, isChest);
                     if (isChest) {
-                        ChestTool.updateDoubleChest(block, blockData, false);
+                        ChestTool.updateDoubleChest(block, rowType, blockData, false);
                     }
 
                     return countBlock;
                 }
-                else if (BlockGroup.UPDATE_STATE.contains(rowType) || rowType.name().contains("CANDLE")) {
+                else if (BlockGroup.UPDATE_STATE.contains(rowType)) {
                     BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
-                    ChestTool.updateDoubleChest(block, blockData, true);
+                    ChestTool.updateDoubleChest(block, rowType, blockData, true);
                     return countBlock;
                 }
-                else if (rowType != Material.AIR && rawBlockData instanceof Bisected && !(rawBlockData instanceof Stairs || rawBlockData instanceof TrapDoor)) {
-                    Bisected bisected = (Bisected) rawBlockData;
-                    Bisected bisectData = (Bisected) rawBlockData.clone();
-                    Location bisectLocation = block.getLocation().clone();
-                    if (bisected.getHalf() == Half.TOP) {
-                        bisectData.setHalf(Half.BOTTOM);
-                        bisectLocation.setY(bisectLocation.getY() - 1);
+                else if (rowType != Material.AIR && (BlockGroup.DOORS.contains(rowType) || rowType == Material.IRON_DOOR_BLOCK)) {
+                    // Both halves are logged separately in DB - place directly without physics
+                    // to avoid door validation dropping the block before both halves exist
+                    BlockUtils.setTypeAndData(block, rowType, blockData, false);
+                    chunkChanges.remove(block);
+                    return countBlock;
+                }
+                else if (rowType != Material.AIR && rowType == Material.DOUBLE_PLANT) {
+                    boolean isTop = (blockData & 0x8) != 0;
+                    if (isTop) {
+                        Block bottomBlock = block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ());
+                        if (bottomBlock.getType() != Material.DOUBLE_PLANT) {
+                            BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
+                            return countBlock;
+                        }
                     }
-                    else {
-                        bisectData.setHalf(Half.TOP);
-                        bisectLocation.setY(bisectLocation.getY() + 1);
-                    }
-
-                    int worldMaxHeight = bukkitWorld.getMaxHeight();
-                    int worldMinHeight = BukkitAdapter.ADAPTER.getMinHeight(bukkitWorld);
-                    if (bisectLocation.getBlockY() >= worldMinHeight && bisectLocation.getBlockY() < worldMaxHeight) {
-                        Block bisectBlock = block.getWorld().getBlockAt(bisectLocation);
-                        BlockUtils.prepareTypeAndData(chunkChanges, bisectBlock, rowType, bisectData, false);
-                    }
-
-                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, false);
+                    BlockUtils.setTypeAndData(block, rowType, blockData, false);
+                    chunkChanges.remove(block);
                     if (countBlock) {
                         updateBlockCount(finalUserString, 2);
                     }
                     return false;
                 }
-                else if (rowType != Material.AIR && rawBlockData instanceof Bed) {
-                    Bed bed = (Bed) rawBlockData;
-                    if (bed.getPart() == Part.FOOT) {
-                        Block adjacentBlock = block.getRelative(bed.getFacing());
-                        Bed bedData = (Bed) rawBlockData.clone();
-                        bedData.setPart(Part.HEAD);
-                        BlockUtils.prepareTypeAndData(chunkChanges, adjacentBlock, rowType, bedData, false);
-                        if (countBlock) {
-                            updateBlockCount(finalUserString, 1);
-                        }
-                    }
-
-                    BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, true);
-                    return countBlock;
-                }
                 else {
                     boolean physics = true;
-                    /*
-                    if (blockData instanceof MultipleFacing || BukkitAdapter.ADAPTER.isWall(blockData) || blockData instanceof Snow || blockData instanceof Stairs || blockData instanceof RedstoneWire || blockData instanceof Chest) {
-                    physics = !(blockData instanceof Snow) || block.getY() <= BukkitAdapter.ADAPTER.getMinHeight(block.getWorld()) || (block.getWorld().getBlockAt(block.getX(), block.getY() - 1, block.getZ()).getType().equals(Material.GRASS_BLOCK));
-                    }
-                    */
                     BlockUtils.prepareTypeAndData(chunkChanges, block, rowType, blockData, physics);
                     return countBlock;
                 }
@@ -491,12 +377,36 @@ public class RollbackBlockHandler extends Queue {
     }
 
     /**
+     * Get the piston base block from a piston head, based on facing direction encoded in data byte
+     */
+    private static Block getPistonBase(Block pistonHead, int facing) {
+        switch (facing & 0x7) {
+            case 0: return pistonHead.getRelative(0, 1, 0);   // down -> base is above
+            case 1: return pistonHead.getRelative(0, -1, 0);  // up -> base is below
+            case 2: return pistonHead.getRelative(0, 0, 1);   // north -> base is south
+            case 3: return pistonHead.getRelative(0, 0, -1);  // south -> base is north
+            case 4: return pistonHead.getRelative(1, 0, 0);   // west -> base is east
+            case 5: return pistonHead.getRelative(-1, 0, 0);  // east -> base is west
+            default: return null;
+        }
+    }
+
+    /**
+     * Get the bed head block from the foot block, based on facing direction in data byte
+     */
+    private static Block getBedHead(Block footBlock, byte data) {
+        int facing = data & 0x3;
+        switch (facing) {
+            case 0: return footBlock.getRelative(0, 0, 1);   // south
+            case 1: return footBlock.getRelative(-1, 0, 0);  // west
+            case 2: return footBlock.getRelative(0, 0, -1);  // north
+            case 3: return footBlock.getRelative(1, 0, 0);   // east
+            default: return null;
+        }
+    }
+
+    /**
      * Update the block count in the rollback hash
-     * 
-     * @param userString
-     *            The username for this rollback
-     * @param increment
-     *            The amount to increment the block count by
      */
     protected static void updateBlockCount(String userString, int increment) {
         int[] rollbackHashData = ConfigHandler.rollbackHash.get(userString);
@@ -511,23 +421,19 @@ public class RollbackBlockHandler extends Queue {
 
     /**
      * Apply all pending block changes to the world
-     * 
-     * @param chunkChanges
-     *            Map of blocks to change
-     * @param preview
-     *            Whether this is a preview
-     * @param user
-     *            The user performing the rollback
      */
-    public static void applyBlockChanges(Map<Block, BlockData> chunkChanges, int preview, Player user) {
-        for (Entry<Block, BlockData> chunkChange : chunkChanges.entrySet()) {
+    @SuppressWarnings("deprecation")
+    public static void applyBlockChanges(Map<Block, byte[]> chunkChanges, int preview, Player user) {
+        for (Entry<Block, byte[]> chunkChange : chunkChanges.entrySet()) {
             Block changeBlock = chunkChange.getKey();
-            BlockData changeBlockData = chunkChange.getValue();
+            byte[] changeData = chunkChange.getValue();
+            Material changeMaterial = Material.getMaterial(changeData[0] & 0xFF);
+            byte changeBlockData = changeData[1];
             if (preview > 0 && user != null) {
-                Util.sendBlockChange(user, changeBlock.getLocation(), changeBlockData);
+                Util.sendBlockChange(user, changeBlock.getLocation(), changeMaterial, changeBlockData);
             }
             else {
-                BlockUtils.setTypeAndData(changeBlock, null, changeBlockData, true);
+                BlockUtils.setTypeAndData(changeBlock, changeMaterial, changeBlockData, true);
             }
         }
         chunkChanges.clear();

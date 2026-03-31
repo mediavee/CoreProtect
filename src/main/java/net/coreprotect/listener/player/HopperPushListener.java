@@ -29,7 +29,7 @@ public final class HopperPushListener {
     private static final AtomicInteger activeProcessors = new AtomicInteger(0);
 
     static void processHopperPush(Location location, String user, InventoryHolder sourceHolder, InventoryHolder destinationHolder, ItemStack item) {
-        Location destinationLocation = destinationHolder.getInventory().getLocation();
+        Location destinationLocation = getHolderLocation(destinationHolder);
         if (destinationLocation == null) {
             return;
         }
@@ -167,6 +167,16 @@ public final class HopperPushListener {
             }
         }
 
-        InventoryChangeListener.onInventoryInteract(user, destinationInventory, originalDestination, null, destinationInventory.getLocation(), true);
+        InventoryChangeListener.onInventoryInteract(user, destinationInventory, originalDestination, null, getHolderLocation(destinationHolder), true);
+    }
+
+    private static Location getHolderLocation(InventoryHolder holder) {
+        if (holder instanceof org.bukkit.block.BlockState) {
+            return ((org.bukkit.block.BlockState) holder).getLocation();
+        }
+        else if (holder instanceof org.bukkit.block.DoubleChest) {
+            return ((org.bukkit.block.DoubleChest) holder).getLocation();
+        }
+        return null;
     }
 }

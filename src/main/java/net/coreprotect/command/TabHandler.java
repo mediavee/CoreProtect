@@ -403,7 +403,7 @@ public class TabHandler implements TabCompleter {
 
             Material[] materialValues = Material.values();
             for (Material material : materialValues) {
-                if (material.isBlock() || material.isItem()) {
+                if (material.isBlock() || material.getId() > 0) {
                     materialList.add(material.name().toLowerCase(Locale.ROOT));
                 }
             }

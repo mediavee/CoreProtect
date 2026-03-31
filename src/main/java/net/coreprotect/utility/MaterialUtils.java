@@ -114,10 +114,6 @@ public class MaterialUtils extends Queue {
 
             name = net.coreprotect.bukkit.BukkitAdapter.ADAPTER.parseLegacyName(name);
             material = Material.getMaterial(name);
-
-            if (material == null) {
-                material = Material.getMaterial(name, true);
-            }
         }
 
         return material;

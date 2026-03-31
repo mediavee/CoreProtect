@@ -7,9 +7,6 @@ import java.sql.Statement;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.Rotatable;
 
 import net.coreprotect.config.Config;
 import net.coreprotect.config.ConfigHandler;
@@ -88,7 +85,7 @@ public class __2_18_0 {
                                 break;
                         }
 
-                        Material material = Material.matchMaterial(materialName, legacy);
+                        Material material = Material.matchMaterial(materialName);
                         int newID = MaterialUtils.getBlockId(material);
 
                         preparedBlockStatement.setInt(1, oldID);
@@ -100,33 +97,12 @@ public class __2_18_0 {
 
                             Material validatedMaterial = material;
                             int validatedID = newID;
-                            if (validatedMaterial == Material.WHITE_WOOL) {
-                                validatedMaterial = getWoolColor(blockData);
-                                validatedID = MaterialUtils.getBlockId(validatedMaterial);
+                            if (validatedMaterial == Material.WOOL) {
+                                // In 1.8, wool is a single material with data values for colors
+                                // No conversion needed - data value already encodes the color
                             }
 
-                            if (blockBlockData == null && validatedMaterial.isBlock()) {
-                                BlockData newBlockData = null;
-                                try {
-                                    newBlockData = Bukkit.getUnsafe().fromLegacy(validatedMaterial, (byte) blockData);
-                                }
-                                catch (Exception e) {
-                                    // unable to generate block data
-                                }
-                                if (newBlockData != null) {
-                                    if (validatedMaterial == Material.OAK_WALL_SIGN && newBlockData instanceof Directional) {
-                                        Directional directional = (Directional) newBlockData;
-                                        BlockFace newDirection = getLegacyDirection(blockData);
-                                        directional.setFacing(newDirection);
-                                    }
-                                    if (validatedMaterial == Material.SKELETON_SKULL && newBlockData instanceof Rotatable) {
-                                        Rotatable rotatable = (Rotatable) newBlockData;
-                                        BlockFace newRotation = getLegacyRotation(blockData);
-                                        rotatable.setRotation(newRotation);
-                                    }
-                                    blockBlockData = BlockUtils.stringToByteData(newBlockData.getAsString(), validatedID);
-                                }
-                            }
+                            // In 1.8, no BlockData conversion needed - data byte is sufficient
 
                             preparedBlockUpdateStatement.setInt(1, validatedID);
                             preparedBlockUpdateStatement.setObject(2, blockBlockData);
@@ -208,42 +184,8 @@ public class __2_18_0 {
     }
 
     protected static Material getWoolColor(int data) {
-        switch (data) {
-            case 0:
-                return Material.WHITE_WOOL;
-            case 1:
-                return Material.ORANGE_WOOL;
-            case 2:
-                return Material.MAGENTA_WOOL;
-            case 3:
-                return Material.LIGHT_BLUE_WOOL;
-            case 4:
-                return Material.YELLOW_WOOL;
-            case 5:
-                return Material.LIME_WOOL;
-            case 6:
-                return Material.PINK_WOOL;
-            case 7:
-                return Material.GRAY_WOOL;
-            case 8:
-                return Material.LIGHT_GRAY_WOOL;
-            case 9:
-                return Material.CYAN_WOOL;
-            case 10:
-                return Material.PURPLE_WOOL;
-            case 11:
-                return Material.BLUE_WOOL;
-            case 12:
-                return Material.BROWN_WOOL;
-            case 13:
-                return Material.GREEN_WOOL;
-            case 14:
-                return Material.RED_WOOL;
-            case 15:
-                return Material.BLACK_WOOL;
-            default:
-                return Material.WHITE_WOOL;
-        }
+        // In 1.8, wool is a single material with data values for colors
+        return Material.WOOL;
     }
 
     private static BlockFace getLegacyDirection(int data) {

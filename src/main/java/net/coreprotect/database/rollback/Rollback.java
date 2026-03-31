@@ -116,7 +116,7 @@ public class Rollback extends RollbackUtil {
                         String world = WorldUtils.getWorldName(rowWorldId);
                         World bukkitWorld = Bukkit.getServer().getWorld(world);
                         if (bukkitWorld != null) {
-                            worldMin = BukkitAdapter.ADAPTER.getMinHeight(bukkitWorld);
+                            worldMin = 0;
                             worldMax = bukkitWorld.getMaxHeight();
                         }
                     }

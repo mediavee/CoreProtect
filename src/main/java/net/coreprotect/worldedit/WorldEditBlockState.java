@@ -1,6 +1,5 @@
 package net.coreprotect.worldedit;
 
-import java.util.Collection;
 import java.util.List;
 
 import org.bukkit.Chunk;
@@ -9,67 +8,47 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.Entity;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.MaterialData;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
 
+@SuppressWarnings("deprecation")
 public final class WorldEditBlockState implements BlockState {
 
-    protected Location location;
-    protected Material material;
-    protected BlockData blockData;
+    private final Location location;
+    private Material material;
+    private final byte data;
 
-    public WorldEditBlockState(Location loc) {
-        location = loc;
-    }
-
-    public WorldEditBlockState(Location loc, Material type, BlockData data) {
-        location = loc;
-        material = type;
-        blockData = data;
-    }
-
-    @Override
-    public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
-
-    }
-
-    @Override
-    public List<MetadataValue> getMetadata(String metadataKey) {
-        return null;
-    }
-
-    @Override
-    public boolean hasMetadata(String metadataKey) {
-        return false;
-    }
-
-    @Override
-    public void removeMetadata(String metadataKey, Plugin owningPlugin) {
-
+    public WorldEditBlockState(Location loc, Material type, byte data) {
+        this.location = loc;
+        this.material = type;
+        this.data = data;
     }
 
     @Override
     public Block getBlock() {
-        return null;
+        return location.getBlock();
     }
 
     @Override
     public MaterialData getData() {
-        return null;
-    }
-
-    @Override
-    public BlockData getBlockData() {
-        return blockData;
+        return material.getNewData(data);
     }
 
     @Override
     public Material getType() {
         return material;
+    }
+
+    @Override
+    public int getTypeId() {
+        return material.getId();
+    }
+
+    @Override
+    public boolean setTypeId(int type) {
+        this.material = Material.getMaterial(type);
+        return true;
     }
 
     @Override
@@ -112,28 +91,21 @@ public final class WorldEditBlockState implements BlockState {
             loc.setYaw(location.getYaw());
             loc.setPitch(location.getPitch());
         }
-
         return loc;
     }
 
     @Override
     public Chunk getChunk() {
-        return null;
+        return location.getChunk();
     }
 
     @Override
     public void setData(MaterialData data) {
-
-    }
-
-    @Override
-    public void setBlockData(BlockData data) {
-        blockData = data;
     }
 
     @Override
     public void setType(Material type) {
-        material = type;
+        this.material = type;
     }
 
     @Override
@@ -153,12 +125,11 @@ public final class WorldEditBlockState implements BlockState {
 
     @Override
     public byte getRawData() {
-        return 0;
+        return data;
     }
 
     @Override
     public void setRawData(byte data) {
-
     }
 
     @Override
@@ -167,38 +138,20 @@ public final class WorldEditBlockState implements BlockState {
     }
 
     @Override
-    public boolean isCollidable() {
+    public void setMetadata(String metadataKey, MetadataValue newMetadataValue) {
+    }
+
+    @Override
+    public List<MetadataValue> getMetadata(String metadataKey) {
+        return null;
+    }
+
+    @Override
+    public boolean hasMetadata(String metadataKey) {
         return false;
     }
 
     @Override
-    public Collection<ItemStack> getDrops() {
-        return null;
+    public void removeMetadata(String metadataKey, Plugin owningPlugin) {
     }
-
-    @Override
-    public Collection<ItemStack> getDrops(ItemStack tool) {
-        return null;
-    }
-
-    @Override
-    public Collection<ItemStack> getDrops(ItemStack tool, Entity entity) {
-        return null;
-    }
-
-    @Override
-    public BlockState copy() {
-        return null;
-    }
-
-    @Override
-    public BlockState copy(Location location) {
-        return null;
-    }
-
-    @Override
-    public boolean isSuffocating() {
-        return false;
-    }
-
 }

@@ -7,6 +7,7 @@ import java.util.Locale;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 
 import net.coreprotect.CoreProtect;
@@ -14,6 +15,7 @@ import net.coreprotect.bukkit.BukkitAdapter;
 import net.coreprotect.config.Config;
 import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.database.statement.BlockStatement;
+import net.coreprotect.model.BlockGroup;
 import net.coreprotect.database.statement.UserStatement;
 import net.coreprotect.event.CoreProtectPreLogEvent;
 import net.coreprotect.thread.CacheHandler;
@@ -33,17 +35,11 @@ public class BlockPlaceLogger {
             }
 
             Material type = block.getType();
-            if (blockData == null && (forceType == null || (!forceType.equals(Material.WATER)) && (!forceType.equals(Material.LAVA)))) {
-                blockData = block.getBlockData().getAsString();
-                if (blockData.equals("minecraft:air")) {
-                    blockData = null;
-                }
-            }
-            int data = 0;
+            int data = block.getRawData();
             if (forceType != null && force) {
                 type = forceType;
-                if (BukkitAdapter.ADAPTER.isItemFrame(type) || type.equals(Material.SPAWNER) || type.equals(Material.PAINTING) || type.equals(Material.SKELETON_SKULL) || type.equals(Material.SKELETON_WALL_SKULL) || type.equals(Material.WITHER_SKELETON_SKULL) || type.equals(Material.WITHER_SKELETON_WALL_SKULL) || type.equals(Material.ZOMBIE_HEAD) || type.equals(Material.ZOMBIE_WALL_HEAD) || type.equals(Material.PLAYER_HEAD) || type.equals(Material.PLAYER_WALL_HEAD) || type.equals(Material.CREEPER_HEAD) || type.equals(Material.CREEPER_WALL_HEAD) || type.equals(Material.DRAGON_HEAD) || type.equals(Material.DRAGON_WALL_HEAD) || type.equals(Material.ARMOR_STAND) || type.equals(Material.END_CRYSTAL)) {
-                    data = forceData; // mob spawner, skull
+                if (BukkitAdapter.ADAPTER.isItemFrame(type) || type.equals(Material.MOB_SPAWNER) || type.equals(Material.PAINTING) || type.equals(Material.SKULL) || type.equals(Material.ARMOR_STAND)) {
+                    data = forceData;
                 }
                 else if (user.startsWith("#")) {
                     data = forceData;
@@ -54,11 +50,11 @@ public class BlockPlaceLogger {
                 data = forceData;
             }
 
-            if (type.equals(Material.AIR) || type.equals(Material.CAVE_AIR)) {
+            if (type.equals(Material.AIR)) {
                 return;
             }
 
-            if (ConfigHandler.blacklist.get(type.getKey().toString()) != null) {
+            if (ConfigHandler.blacklist.get("minecraft:" + type.name().toLowerCase(Locale.ROOT)) != null) {
                 return;
             }
 
@@ -110,11 +106,37 @@ public class BlockPlaceLogger {
             }
 
             int internalType = MaterialUtils.getBlockId(type.name(), true);
-            if (replacedType > 0 && MaterialUtils.getType(replacedType) != Material.AIR && MaterialUtils.getType(replacedType) != Material.CAVE_AIR) {
+            if (replacedType > 0 && MaterialUtils.getType(replacedType) != Material.AIR) {
                 BlockStatement.insert(preparedStmt, batchCount, time, userId, wid, x, y, z, replacedType, replacedData, null, replaceBlockData, 0, 0);
             }
 
             BlockStatement.insert(preparedStmt, batchCount, time, userId, wid, x, y, z, internalType, data, meta, blockData, 1, 0);
+
+            // Log second half of double-height blocks (doors, beds)
+            if (type.equals(Material.IRON_DOOR_BLOCK) || BlockGroup.DOORS.contains(type)) {
+                if (data < 8) { // bottom half only
+                    int topData = data | 0x8;
+                    try {
+                        Block topBlock = block.getWorld().getBlockAt(x, y + 1, z);
+                        Material topType = topBlock.getType();
+                        if (BlockGroup.DOORS.contains(topType) || topType == Material.IRON_DOOR_BLOCK) {
+                            topData = topBlock.getData();
+                        }
+                    }
+                    catch (Exception ignored) {
+                    }
+                    BlockStatement.insert(preparedStmt, batchCount, time, userId, wid, x, y + 1, z, internalType, topData, null, null, 1, 0);
+                }
+            }
+            else if (type.equals(Material.BED_BLOCK) && (data & 0x8) == 0) { // foot part only
+                int dx = x, dz = z;
+                int facing = data & 0x3;
+                if (facing == 0) dz = z + 1;
+                else if (facing == 1) dx = x - 1;
+                else if (facing == 2) dz = z - 1;
+                else if (facing == 3) dx = x + 1;
+                BlockStatement.insert(preparedStmt, batchCount, time, userId, wid, dx, y, dz, internalType, data + 8, null, null, 1, 0);
+            }
         }
         catch (Exception e) {
             e.printStackTrace();

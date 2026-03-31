@@ -29,7 +29,8 @@ class NaturalBlockBreakProcess {
                     }
                 }
                 blockLists.remove(id);
-                BlockBreakLogger.log(preparedStmt, batchCount, user, block.getLocation(), MaterialUtils.getBlockId(blockType), blockData, null, block.getBlockData().getAsString(), overrideData);
+                int data = (blockData > 0) ? blockData : block.getRawData();
+                BlockBreakLogger.log(preparedStmt, batchCount, user, block.getLocation(), MaterialUtils.getBlockId(blockType), data, null, null, overrideData);
             }
         }
     }

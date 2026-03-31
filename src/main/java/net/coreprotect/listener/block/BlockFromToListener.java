@@ -5,9 +5,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Levelled;
-import org.bukkit.block.data.Waterlogged;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -21,36 +18,31 @@ import net.coreprotect.utility.WorldUtils;
 
 public final class BlockFromToListener extends Queue implements Listener {
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.MONITOR)
     protected void onBlockFromTo(BlockFromToEvent event) {
         Block block = event.getBlock();
         Material type = block.getType(); // old block type
         if (!event.isCancelled()) {
-            BlockData blockData = block.getBlockData();
-            if (blockData instanceof Waterlogged) {
-                Waterlogged waterlogged = (Waterlogged) blockData;
-                if (waterlogged.isWaterlogged()) {
-                    type = Material.WATER;
-                    blockData = type.createBlockData();
-                }
-            }
-
             World world = event.getBlock().getWorld();
-            if ((Config.getConfig(world).WATER_FLOW && type.equals(Material.WATER)) || (Config.getConfig(world).LAVA_FLOW && type.equals(Material.LAVA))) {
+            if ((Config.getConfig(world).WATER_FLOW && type.equals(Material.WATER)) || (Config.getConfig(world).WATER_FLOW && type.equals(Material.STATIONARY_WATER)) || (Config.getConfig(world).LAVA_FLOW && type.equals(Material.LAVA)) || (Config.getConfig(world).LAVA_FLOW && type.equals(Material.STATIONARY_LAVA))) {
+                if (type == Material.STATIONARY_WATER) {
+                    type = Material.WATER;
+                }
+                else if (type == Material.STATIONARY_LAVA) {
+                    type = Material.LAVA;
+                }
+
                 Block toBlock = event.getToBlock();
                 BlockState toBlockState = toBlock.getState();
 
-                if (blockData instanceof Levelled) {
-                    Levelled levelled = (Levelled) blockData;
-                    int waterLevel = levelled.getLevel() + 1;
-                    if (waterLevel > 8) {
-                        waterLevel = waterLevel - 8;
-                    }
-                    levelled.setLevel(waterLevel);
-                    blockData = levelled;
+                byte waterLevel = block.getData();
+                int level = waterLevel + 1;
+                if (level > 8) {
+                    level = level - 8;
                 }
 
-                if ((toBlock.getBlockData() instanceof Waterlogged) || toBlock.isEmpty()) {
+                if (toBlock.isEmpty()) {
                     toBlockState = null;
                 }
 
@@ -85,7 +77,7 @@ public final class BlockFromToListener extends Queue implements Listener {
                 }
 
                 CacheHandler.lookupCache.put("" + x + "." + y + "." + z + "." + wid + "", new Object[] { unixtimestamp, f, type });
-                Queue.queueBlockPlace(f, toBlock.getState(), block.getType(), toBlockState, type, -1, 0, blockData.getAsString());
+                Queue.queueBlockPlace(f, toBlock.getState(), block.getType(), toBlockState, type, -1, 0, null);
             }
             else if (type.equals(Material.DRAGON_EGG)) {
                 Location location = block.getLocation();
@@ -108,7 +100,7 @@ public final class BlockFromToListener extends Queue implements Listener {
                 }
 
                 if (Config.getConfig(block.getWorld()).BLOCK_BREAK) {
-                    Queue.queueBlockBreak(user, block.getState(), block.getType(), block.getBlockData().getAsString(), 0);
+                    Queue.queueBlockBreak(user, block.getState(), block.getType(), null, 0);
                 }
                 if (Config.getConfig(block.getWorld()).BLOCK_PLACE) {
                     Block toBlock = event.getToBlock();
@@ -117,7 +109,7 @@ public final class BlockFromToListener extends Queue implements Listener {
                         toBlockState = BlockUtil.gravityScan(toBlock.getLocation(), type, user).getState();
                     }
 
-                    Queue.queueBlockPlace(user, toBlockState, block.getType(), toBlockState, type, -1, 0, blockData.getAsString());
+                    Queue.queueBlockPlace(user, toBlockState, block.getType(), toBlockState, type, -1, 0, null);
                 }
             }
         }

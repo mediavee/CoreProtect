@@ -122,9 +122,7 @@ public final class ArmorStandManipulateListener extends Queue implements Listene
             case HAND:
                 slot = 4;
                 break;
-            case OFF_HAND:
-                slot = 5;
-                break;
+            // OFF_HAND not available in 1.8
             default:
                 slot = 0;
         }

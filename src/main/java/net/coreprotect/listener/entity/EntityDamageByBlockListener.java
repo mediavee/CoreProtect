@@ -29,7 +29,7 @@ public final class EntityDamageByBlockListener extends Queue implements Listener
         }
 
         Block damager = event.getDamager();
-        if (damager == null || damager.getType() == Material.MAGMA_BLOCK) {
+        if (damager == null) {
             return;
         }
 
@@ -56,8 +56,7 @@ public final class EntityDamageByBlockListener extends Queue implements Listener
             Queue.queueBlockBreak(user, block.getState(), Material.ARMOR_STAND, null, (int) entity.getLocation().getYaw());
         }
         else if (entity instanceof EnderCrystal && Config.getConfig(entity.getWorld()).BLOCK_BREAK) {
-            EnderCrystal crystal = (EnderCrystal) event.getEntity();
-            Queue.queueBlockBreak(user, block.getState(), Material.END_CRYSTAL, null, crystal.isShowingBottom() ? 1 : 0);
+            Queue.queueBlockBreak(user, block.getState(), Material.AIR, null, 0);
         }
     }
 

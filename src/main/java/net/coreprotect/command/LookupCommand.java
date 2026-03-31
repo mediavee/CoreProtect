@@ -262,7 +262,7 @@ public class LookupCommand {
 
             argExclude.put(Material.FIRE, false);
             argExclude.put(Material.WATER, false);
-            argExclude.put(Material.FARMLAND, false);
+            argExclude.put(Material.SOIL, false);
             argExcludeUsers.add("#hopper");
         }
 

@@ -2,9 +2,7 @@ package net.coreprotect.api.result;
 
 import java.util.Locale;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
 
 import net.coreprotect.api.SessionLookup;
 import net.coreprotect.utility.EntityUtils;
@@ -89,18 +87,6 @@ public class ParseResult {
         }
 
         return MaterialUtils.getType(typeName);
-    }
-
-    public BlockData getBlockData() {
-        if (parse.length < 13) {
-            return null;
-        }
-
-        String blockData = parse[12];
-        if (blockData == null || blockData.length() == 0) {
-            return getType().createBlockData();
-        }
-        return Bukkit.getServer().createBlockData(blockData);
     }
 
     public int getX() {

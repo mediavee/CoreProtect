@@ -21,7 +21,7 @@ public final class LeavesDecayListener extends Queue implements Listener {
             Block block = event.getBlock();
             Material type = event.getBlock().getType();
 
-            Queue.queueBlockBreak(player, block.getState(), type, event.getBlock().getBlockData().getAsString(), 0);
+            Queue.queueBlockBreak(player, block.getState(), type, null, 0);
         }
     }
 }

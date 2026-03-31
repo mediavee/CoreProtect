@@ -124,7 +124,7 @@ public class HangingUtil {
                     }
                     Block spawnBlock = hangingFace != null ? block : block.getRelative(face);
                     if (hangingFace == null) {
-                        BlockUtils.setTypeAndData(spawnBlock, Material.AIR, null, true);
+                        BlockUtils.setTypeAndData(spawnBlock, Material.AIR, (byte) 0, true);
                     }
                     Painting hanging = null;
                     try {
@@ -142,7 +142,7 @@ public class HangingUtil {
                     try {
                         Block spawnBlock = hangingFace != null ? block : block.getRelative(face);
                         if (hangingFace == null) {
-                            BlockUtils.setTypeAndData(spawnBlock, Material.AIR, null, true);
+                            BlockUtils.setTypeAndData(spawnBlock, Material.AIR, (byte) 0, true);
                         }
                         Class itemFrame = BukkitAdapter.ADAPTER.getFrameClass(rowType);
                         Entity entity = block.getWorld().spawn(spawnBlock.getLocation(), itemFrame);

@@ -1,6 +1,5 @@
 package net.coreprotect.listener.entity;
 
-import org.bukkit.ExplosionResult;
 import org.bukkit.World;
 import org.bukkit.entity.Creeper;
 import org.bukkit.entity.EnderCrystal;
@@ -16,7 +15,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
 
-import net.coreprotect.bukkit.BukkitAdapter;
 import net.coreprotect.config.Config;
 import net.coreprotect.consumer.Queue;
 import net.coreprotect.listener.block.BlockExplodeListener;
@@ -26,10 +24,6 @@ public final class EntityExplodeListener extends Queue implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     protected void onEntityExplode(EntityExplodeEvent event) {
         Entity entity = event.getEntity();
-
-        if (!BukkitAdapter.ADAPTER.shouldLogExplosion(event)){
-            return;
-        }
 
         World world = event.getLocation().getWorld();
         String user = "#explosion";
@@ -69,4 +63,5 @@ public final class EntityExplodeListener extends Queue implements Listener {
             BlockExplodeListener.processBlockExplode(user, world, event.blockList());
         }
     }
+
 }

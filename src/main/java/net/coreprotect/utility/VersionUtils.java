@@ -189,51 +189,13 @@ public class VersionUtils {
         try {
             boolean validVersion = true;
             String version = Bukkit.getServer().getPluginManager().getPlugin("WorldEdit").getDescription().getVersion();
-            if (version.contains(";") || version.contains("+")) {
-                if (version.contains("-beta-")) {
-                    version = version.split(";")[0];
-                    version = version.split("-beta-")[1];
-                    long value = Long.parseLong(version.replaceAll("[^0-9]", ""));
-                    if (value < 6) {
-                        validVersion = false;
-                    }
-                }
-                else {
-                    if (version.contains("+")) {
-                        version = version.split("\\+")[1];
-                    }
-                    else {
-                        version = version.split(";")[1];
-                    }
-
-                    if (version.contains("-")) {
-                        long value = Long.parseLong(((version.split("-"))[0]).replaceAll("[^0-9]", ""));
-                        if (value > 0 && value < 4268) {
-                            validVersion = false;
-                        }
-                    }
-                }
-            }
-            else if (version.contains(".")) {
+            if (version.contains(".")) {
                 String[] worldEditVersion = version.split("-|\\.");
                 if (worldEditVersion.length >= 2) {
                     worldEditVersion[0] = worldEditVersion[0].replaceAll("[^0-9]", "");
                     worldEditVersion[1] = worldEditVersion[1].replaceAll("[^0-9]", "");
-                    if (worldEditVersion[0].length() == 0 || worldEditVersion[1].length() == 0 || newVersion(worldEditVersion[0] + "." + worldEditVersion[1], "7.1")) {
+                    if (worldEditVersion[0].length() == 0 || worldEditVersion[1].length() == 0 || newVersion(worldEditVersion[0] + "." + worldEditVersion[1], "6.0")) {
                         validVersion = false;
-                    }
-                }
-            }
-            else if (version.equals("unspecified")) { // FAWE
-                validVersion = false;
-                Plugin fawe = Bukkit.getServer().getPluginManager().getPlugin("FastAsyncWorldEdit");
-                if (fawe != null) {
-                    String apiVersion = Bukkit.getServer().getPluginManager().getPlugin("WorldEdit").getDescription().getAPIVersion();
-                    String faweVersion = fawe.getDescription().getVersion();
-                    double apiDouble = Double.parseDouble(apiVersion);
-                    double faweDouble = Double.parseDouble(faweVersion);
-                    if (apiDouble >= 1.13 && faweDouble >= 1.0) {
-                        validVersion = true;
                     }
                 }
             }

@@ -50,7 +50,8 @@ public class SkullPlaceLogger {
                 }
             }
 
-            BlockPlaceLogger.log(preparedStmt, batchCount, user, block, replaceType, replaceData, type, skullKey, true, null, null, null);
+            String rawDataString = String.valueOf(block.getRawData());
+            BlockPlaceLogger.log(preparedStmt, batchCount, user, block, replaceType, replaceData, type, skullKey, true, null, rawDataString, null);
         }
         catch (Exception e) {
             e.printStackTrace();

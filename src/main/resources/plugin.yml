@@ -2,11 +2,9 @@ name: CoreProtect
 main: net.coreprotect.CoreProtect
 version: ${project.version}
 branch: ${project.branch}
-api-version: 1.16
-folia-supported: true
 website: http://coreprotect.net
 author: Intelli
-softdepend: [WorldEdit,AdvancedChests]
+softdepend: [WorldEdit]
 description: >
              Provides block protection for your server.
 commands:
@@ -29,7 +27,7 @@ permissions:
     coreprotect.*:
         description: Gives access to all CoreProtect actions and commands
         default: op
-        children: 
+        children:
             coreprotect.rollback: true
             coreprotect.restore: true
             coreprotect.inspect: true

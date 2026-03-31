@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Material;
-import org.bukkit.Tag;
 
 import net.coreprotect.config.Config;
 import net.coreprotect.config.ConfigHandler;
@@ -117,7 +116,7 @@ public class __2_19_0 {
             }
 
             List<Integer> signList = new ArrayList<>();
-            for (Material material : Tag.SIGNS.getValues()) {
+            for (Material material : new Material[] { Material.SIGN_POST, Material.WALL_SIGN }) {
                 int id = MaterialUtils.getBlockId(material.name(), false);
                 if (id > -1) {
                     signList.add(id);

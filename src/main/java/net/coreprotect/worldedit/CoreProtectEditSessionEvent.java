@@ -1,7 +1,5 @@
 package net.coreprotect.worldedit;
 
-import org.bukkit.Bukkit;
-
 import com.sk89q.worldedit.EditSession.Stage;
 import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
@@ -16,15 +14,10 @@ import net.coreprotect.utility.Chat;
 
 public class CoreProtectEditSessionEvent {
     private static boolean initialized = false;
-    private static boolean isFAWE = false;
     private static CoreProtectEditSessionEvent event = new CoreProtectEditSessionEvent();
 
     public static boolean isInitialized() {
         return initialized;
-    }
-
-    public static boolean isFAWE() {
-        return isFAWE;
     }
 
     public static void register() {
@@ -43,7 +36,6 @@ public class CoreProtectEditSessionEvent {
             });
             initialized = true;
             ConfigHandler.worldeditEnabled = true;
-            isFAWE = (Bukkit.getServer().getPluginManager().getPlugin("FastAsyncWorldEdit") != null);
         }
         catch (Exception e) {
             // Failed to initialize WorldEdit logging
@@ -52,10 +44,10 @@ public class CoreProtectEditSessionEvent {
         Scheduler.runTask(CoreProtect.getInstance(), () -> {
             try {
                 if (isInitialized()) {
-                    Chat.console(Phrase.build(Phrase.INTEGRATION_SUCCESS, isFAWE() ? "FastAsyncWorldEdit" : "WorldEdit", Selector.FIRST));
+                    Chat.console(Phrase.build(Phrase.INTEGRATION_SUCCESS, "WorldEdit", Selector.FIRST));
                 }
                 else {
-                    Chat.console(Phrase.build(Phrase.INTEGRATION_ERROR, isFAWE() ? "FastAsyncWorldEdit" : "WorldEdit", Selector.FIRST));
+                    Chat.console(Phrase.build(Phrase.INTEGRATION_ERROR, "WorldEdit", Selector.FIRST));
                 }
             }
             catch (Exception e) {
@@ -73,10 +65,10 @@ public class CoreProtectEditSessionEvent {
             WorldEdit.getInstance().getEventBus().unregister(event);
             initialized = false;
             ConfigHandler.worldeditEnabled = false;
-            Chat.console(Phrase.build(Phrase.INTEGRATION_SUCCESS, isFAWE() ? "FastAsyncWorldEdit" : "WorldEdit", Selector.SECOND));
+            Chat.console(Phrase.build(Phrase.INTEGRATION_SUCCESS, "WorldEdit", Selector.SECOND));
         }
         catch (Exception e) {
-            Chat.console(Phrase.build(Phrase.INTEGRATION_ERROR, isFAWE() ? "FastAsyncWorldEdit" : "WorldEdit", Selector.SECOND));
+            Chat.console(Phrase.build(Phrase.INTEGRATION_ERROR, "WorldEdit", Selector.SECOND));
         }
     }
 }

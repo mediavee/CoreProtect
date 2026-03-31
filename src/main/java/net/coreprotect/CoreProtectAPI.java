@@ -13,7 +13,6 @@ import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
@@ -307,7 +306,7 @@ public class CoreProtectAPI extends Queue {
             return false;
         }
 
-        Queue.queueBlockPlace(user, blockState, blockState.getType(), null, blockState.getType(), -1, 0, blockState.getBlockData().getAsString());
+        Queue.queueBlockPlace(user, blockState, blockState.getType(), null, blockState.getType(), -1, 0, null);
         return true;
     }
 
@@ -324,20 +323,14 @@ public class CoreProtectAPI extends Queue {
      *            The block data
      * @return True if the placement was logged
      */
-    public boolean logPlacement(String user, Location location, Material type, BlockData blockData) {
+    public boolean logPlacement(String user, Location location, Material type, Object blockData) {
         if (!isEnabled() || !isValidUserAndLocation(user, location)) {
             return false;
         }
 
         Block block = location.getBlock();
         BlockState blockState = block.getState();
-        String blockDataString = null;
-
-        if (blockData != null) {
-            blockDataString = blockData.getAsString();
-        }
-
-        Queue.queueBlockPlace(user, blockState, block.getType(), null, type, -1, 0, blockDataString);
+        Queue.queueBlockPlace(user, blockState, block.getType(), null, type, -1, 0, null);
         return true;
     }
 
@@ -353,7 +346,7 @@ public class CoreProtectAPI extends Queue {
      * @param data
      *            The data value
      * @return True if the placement was logged
-     * @deprecated Use {@link #logPlacement(String, Location, Material, BlockData)} instead
+     * @deprecated Use {@link #logPlacement(String, Location, Material, Object)} instead
      */
     @Deprecated
     public boolean logPlacement(String user, Location location, Material type, byte data) {
@@ -379,7 +372,7 @@ public class CoreProtectAPI extends Queue {
             return false;
         }
 
-        Queue.queueBlockBreak(user, blockState, blockState.getType(), blockState.getBlockData().getAsString(), 0);
+        Queue.queueBlockBreak(user, blockState, blockState.getType(), null, 0);
         return true;
     }
 
@@ -396,19 +389,14 @@ public class CoreProtectAPI extends Queue {
      *            The block data
      * @return True if the removal was logged
      */
-    public boolean logRemoval(String user, Location location, Material type, BlockData blockData) {
+    public boolean logRemoval(String user, Location location, Material type, Object blockData) {
         if (!isEnabled() || !isValidUserAndLocation(user, location)) {
             return false;
         }
 
-        String blockDataString = null;
-        if (blockData != null) {
-            blockDataString = blockData.getAsString();
-        }
-
         Block block = location.getBlock();
         Database.containerBreakCheck(user, block.getType(), block, null, location);
-        Queue.queueBlockBreak(user, location.getBlock().getState(), type, blockDataString, 0);
+        Queue.queueBlockBreak(user, location.getBlock().getState(), type, null, 0);
         return true;
     }
 
@@ -424,7 +412,7 @@ public class CoreProtectAPI extends Queue {
      * @param data
      *            The data value
      * @return True if the removal was logged
-     * @deprecated Use {@link #logRemoval(String, Location, Material, BlockData)} instead
+     * @deprecated Use {@link #logRemoval(String, Location, Material, Object)} instead
      */
     @Deprecated
     public boolean logRemoval(String user, Location location, Material type, byte data) {
@@ -432,7 +420,7 @@ public class CoreProtectAPI extends Queue {
             return false;
         }
 
-        Queue.queueBlockBreak(user, location.getBlock().getState(), type, type.createBlockData().getAsString(), data);
+        Queue.queueBlockBreak(user, location.getBlock().getState(), type, null, data);
         return true;
     }
 

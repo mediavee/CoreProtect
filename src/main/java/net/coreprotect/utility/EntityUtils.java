@@ -58,26 +58,22 @@ public class EntityUtils extends Queue {
                 return Material.ITEM_FRAME;
             case "END_CRYSTAL":
             case "ENDER_CRYSTAL":
-                return Material.END_CRYSTAL;
+                return Material.ENDER_PEARL; // no end crystal item in 1.8
             case "ENDER_PEARL":
                 return Material.ENDER_PEARL;
             case "POTION":
             case "SPLASH_POTION":
-                return Material.SPLASH_POTION;
+                return Material.POTION;
             case "EXPERIENCE_BOTTLE":
             case "THROWN_EXP_BOTTLE":
-                return Material.EXPERIENCE_BOTTLE;
-            case "TRIDENT":
-                return Material.TRIDENT;
+                return Material.EXP_BOTTLE;
             case "FIREWORK_ROCKET":
             case "FIREWORK":
-                return Material.FIREWORK_ROCKET;
+                return Material.FIREWORK;
             case "EGG":
                 return Material.EGG;
             case "SNOWBALL":
-                return Material.SNOWBALL;
-            case "WIND_CHARGE":
-                return Material.valueOf("WIND_CHARGE");
+                return Material.SNOW_BALL;
             default:
                 return BukkitAdapter.ADAPTER.getFrameType(type);
         }

@@ -4,8 +4,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.sk89q.worldedit.LocalSession;
+import com.sk89q.worldedit.Vector;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
-import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.World;
 
@@ -23,7 +23,7 @@ public class WorldEditHandler {
                 if (world != null) {
                     Region region = session.getSelection(world);
                     if (region != null && world.getName().equals(((Player) user).getWorld().getName())) {
-                        BlockVector3 block = region.getMinimumPoint();
+                        Vector block = region.getMinimumPoint();
                         int x = block.getBlockX();
                         int y = block.getBlockY();
                         int z = block.getBlockZ();

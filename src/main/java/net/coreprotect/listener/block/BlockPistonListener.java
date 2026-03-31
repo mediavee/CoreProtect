@@ -82,7 +82,7 @@ public final class BlockPistonListener extends Queue implements Listener {
                 int c = 0;
                 for (Block nblock : nblocks) {
                     BlockState block = blocks.get(c).getState();
-                    queueBlockPlaceValidate(e, nblock.getState(), nblock, null, block.getType(), -1, 0, block.getBlockData().getAsString(), 3);
+                    queueBlockPlaceValidate(e, nblock.getState(), nblock, null, block.getType(), -1, 0, null, 3);
                     c++;
                 }
             }

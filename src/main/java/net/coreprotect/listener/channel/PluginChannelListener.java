@@ -19,7 +19,7 @@ import net.coreprotect.utility.WorldUtils;
 
 public class PluginChannelListener implements Listener {
 
-    public static final String pluginChannel = "coreprotect:data";
+    public static final String pluginChannel = "CP|Data";
     private static PluginChannelListener instance;
 
     public PluginChannelListener() {

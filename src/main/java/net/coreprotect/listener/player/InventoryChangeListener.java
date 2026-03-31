@@ -10,26 +10,22 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.DoubleChest;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
 import net.coreprotect.CoreProtect;
-import net.coreprotect.bukkit.BukkitAdapter;
 import net.coreprotect.config.Config;
 import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.consumer.Queue;
@@ -38,8 +34,6 @@ import net.coreprotect.paper.PaperAdapter;
 import net.coreprotect.thread.Scheduler;
 import net.coreprotect.utility.ItemUtils;
 import net.coreprotect.utility.Validate;
-import us.lynuxcraft.deadsilenceiv.advancedchests.AdvancedChestsAPI;
-import us.lynuxcraft.deadsilenceiv.advancedchests.chest.AdvancedChest;
 
 public final class InventoryChangeListener extends Queue implements Listener {
 
@@ -108,18 +102,7 @@ public final class InventoryChangeListener extends Queue implements Listener {
                 else {
                     InventoryHolder inventoryHolder = inventory.getHolder();
                     if (inventoryHolder == null) {
-                        if (CoreProtect.getInstance().isAdvancedChestsEnabled()) {
-                            AdvancedChest<?, ?> advancedChest = AdvancedChestsAPI.getInventoryManager().getAdvancedChest(inventory);
-                            if (advancedChest != null) {
-                                playerLocation = advancedChest.getLocation();
-                            }
-                            else {
-                                return false;
-                            }
-                        }
-                        else {
-                            return false;
-                        }
+                        return false;
                     }
                     if (inventoryHolder instanceof BlockState) {
                         BlockState state = (BlockState) inventoryHolder;
@@ -243,20 +226,20 @@ public final class InventoryChangeListener extends Queue implements Listener {
 
         Location location = null;
         try {
-            location = inventory.getLocation();
+            InventoryHolder holder = inventory.getHolder();
+            if (holder instanceof BlockState) {
+                location = ((BlockState) holder).getLocation();
+            }
+            else if (holder instanceof DoubleChest) {
+                location = ((DoubleChest) holder).getLocation();
+            }
         }
         catch (Exception e) {
             return;
         }
 
-        if (location == null && !CoreProtect.getInstance().isAdvancedChestsEnabled()) {
+        if (location == null) {
             return;
-        }
-        if (CoreProtect.getInstance().isAdvancedChestsEnabled()) {
-            AdvancedChest<?, ?> chest = AdvancedChestsAPI.getInventoryManager().getAdvancedChest(inventory);
-            if (chest != null) {
-                location = chest.getLocation();
-            }
         }
 
         if (location == null) {
@@ -345,57 +328,9 @@ public final class InventoryChangeListener extends Queue implements Listener {
         return true;
     }
 
-    private boolean checkCrafterSlotChange(InventoryClickEvent event) {
-        // Check if the clicked inventory is a crafter
-        if (!BukkitAdapter.ADAPTER.isCrafter(event.getInventory().getType())) {
-            return false;
-        }
-
-        // Check that the Action is NOTHING
-        if (event.getAction() != InventoryAction.NOTHING) {
-            return false;
-        }
-
-        // Check if the clicked slot is one of the crafter slots
-        if (event.getRawSlot() < 0 || event.getRawSlot() > 8) {
-            return false;
-        }
-
-        // Check that the click type is not a middle click
-        if (!(event.getClick() == ClickType.LEFT || event.getClick() == ClickType.RIGHT)) {
-            return false;
-        }
-
-        // Gather other necessary information
-        Player player = (Player) event.getWhoClicked();
-        Inventory inventory = event.getInventory();
-
-        Location location = null;
-        try {
-            location = inventory.getLocation();
-        }
-        catch (Exception e) {
-            return false;
-        }
-
-        if (location == null) {
-            return false;
-        }
-
-        Block block = location.getBlock();
-        BlockState blockState = block.getState();
-
-        Queue.queueBlockPlace(player.getName(), blockState, block.getType(), blockState, block.getType(), -1, 0, blockState.getBlockData().getAsString());
-        return true;
-    }
-
     @EventHandler(priority = EventPriority.LOWEST)
     protected void onInventoryClick(InventoryClickEvent event) {
         InventoryAction inventoryAction = event.getAction();
-
-        if (checkCrafterSlotChange(event)) {
-            return;
-        }
 
         if (inventoryAction == InventoryAction.NOTHING) {
             return;
@@ -407,16 +342,16 @@ public final class InventoryChangeListener extends Queue implements Listener {
         }
 
         boolean enderChest = false;
-        boolean advancedChest;
         if (inventoryAction != InventoryAction.MOVE_TO_OTHER_INVENTORY && inventoryAction != InventoryAction.COLLECT_TO_CURSOR && inventoryAction != InventoryAction.UNKNOWN) {
             // Perform this check to prevent triggering onInventoryInteractAsync when a user is just clicking items in their own inventory
             Inventory inventory = null;
             try {
-                try {
-                    inventory = event.getView().getInventory(event.getRawSlot());
+                int rawSlot = event.getRawSlot();
+                if (rawSlot < event.getView().getTopInventory().getSize()) {
+                    inventory = event.getView().getTopInventory();
                 }
-                catch (IncompatibleClassChangeError e) {
-                    inventory = event.getClickedInventory();
+                else {
+                    inventory = event.getView().getBottomInventory();
                 }
             }
             catch (Exception e) {
@@ -428,11 +363,7 @@ public final class InventoryChangeListener extends Queue implements Listener {
 
             InventoryHolder inventoryHolder = inventory.getHolder();
             enderChest = inventory.equals(event.getWhoClicked().getEnderChest());
-            advancedChest = isAdvancedChest(inventory);
-            if ((!(inventoryHolder instanceof BlockInventoryHolder || inventoryHolder instanceof DoubleChest)) && !enderChest && !advancedChest) {
-                return;
-            }
-            if (advancedChest && event.getSlot() > inventory.getSize() - 10) {
+            if ((!(inventoryHolder instanceof BlockState || inventoryHolder instanceof DoubleChest)) && !enderChest) {
                 return;
             }
         }
@@ -445,11 +376,7 @@ public final class InventoryChangeListener extends Queue implements Listener {
 
             InventoryHolder inventoryHolder = inventory.getHolder();
             enderChest = inventory.equals(event.getWhoClicked().getEnderChest());
-            advancedChest = isAdvancedChest(inventory);
-            if ((!(inventoryHolder instanceof BlockInventoryHolder || inventoryHolder instanceof DoubleChest)) && !enderChest && !advancedChest) {
-                return;
-            }
-            if (advancedChest && event.getSlot() > inventory.getSize() - 10) {
+            if ((!(inventoryHolder instanceof BlockState || inventoryHolder instanceof DoubleChest)) && !enderChest) {
                 return;
             }
         }
@@ -470,7 +397,7 @@ public final class InventoryChangeListener extends Queue implements Listener {
         }
 
         enderChest = inventory.equals(event.getWhoClicked().getEnderChest());
-        if (((inventoryHolder instanceof BlockInventoryHolder || inventoryHolder instanceof DoubleChest)) || enderChest || isAdvancedChest(inventory)) {
+        if (((inventoryHolder instanceof BlockState || inventoryHolder instanceof DoubleChest)) || enderChest) {
             movedItem = true;
         }
 
@@ -493,7 +420,14 @@ public final class InventoryChangeListener extends Queue implements Listener {
             return;
         }
 
-        Location location = sourceInventory.getLocation();
+        Location location = null;
+        InventoryHolder srcHolder = sourceInventory.getHolder();
+        if (srcHolder instanceof BlockState) {
+            location = ((BlockState) srcHolder).getLocation();
+        }
+        else if (srcHolder instanceof DoubleChest) {
+            location = ((DoubleChest) srcHolder).getLocation();
+        }
         if (location == null) {
             return;
         }
@@ -530,7 +464,7 @@ public final class InventoryChangeListener extends Queue implements Listener {
             return;
         }
 
-        if (destinationHolder instanceof Player || (!(sourceHolder instanceof BlockInventoryHolder) && !(sourceHolder instanceof DoubleChest))) {
+        if (destinationHolder instanceof Player || (!(sourceHolder instanceof BlockState) && !(sourceHolder instanceof DoubleChest))) {
             return;
         }
 
@@ -540,10 +474,6 @@ public final class InventoryChangeListener extends Queue implements Listener {
         }
 
         HopperPullListener.processHopperPull(location, "#hopper", sourceHolder, destinationHolder, event.getItem());
-    }
-
-    private boolean isAdvancedChest(Inventory inventory) {
-        return CoreProtect.getInstance().isAdvancedChestsEnabled() && AdvancedChestsAPI.getInventoryManager().getAdvancedChest(inventory) != null;
     }
 
 }
