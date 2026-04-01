@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +26,6 @@ import net.coreprotect.consumer.process.Process;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.model.BlockGroup;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.ItemUtils;
 import net.coreprotect.utility.MaterialUtils;
 
@@ -176,7 +176,7 @@ public class Database extends Queue {
                 }
                 catch (Exception e) {
                     ConfigHandler.databaseReachable = false;
-                    Chat.sendConsoleMessage(Color.RED + "[CoreProtect] " + Phrase.build(Phrase.MYSQL_UNAVAILABLE));
+                    Chat.send(Bukkit.getConsoleSender(), Phrase.build(Phrase.MYSQL_UNAVAILABLE));
                     e.printStackTrace();
                 }
             }

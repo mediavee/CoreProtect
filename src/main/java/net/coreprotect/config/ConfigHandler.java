@@ -34,7 +34,6 @@ import net.coreprotect.paper.PaperAdapter;
 import net.coreprotect.patch.Patch;
 import net.coreprotect.spigot.SpigotAdapter;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.SystemUtils;
 import net.coreprotect.utility.VersionUtils;
 import oshi.hardware.CentralProcessor;
@@ -483,15 +482,15 @@ public class ConfigHandler extends Queue {
                     while (rs.next()) {
                         if (unixtimestamp < waitTime) {
                             if (!lockMessage) {
-                                Chat.sendConsoleMessage("[CoreProtect] " + Phrase.build(Phrase.DATABASE_LOCKED_1));
+                                Chat.send(Bukkit.getConsoleSender(), Phrase.build(Phrase.DATABASE_LOCKED_1));
                                 lockMessage = true;
                             }
                             Thread.sleep(1000);
                         }
                         else {
-                            Chat.sendConsoleMessage(Color.RED + "[CoreProtect] " + Phrase.build(Phrase.DATABASE_LOCKED_2));
-                            Chat.sendConsoleMessage(Color.GREY + "[CoreProtect] " + Phrase.build(Phrase.DATABASE_LOCKED_3));
-                            Chat.sendConsoleMessage(Color.GREY + "[CoreProtect] " + Phrase.build(Phrase.DATABASE_LOCKED_4));
+                            Chat.send(Bukkit.getConsoleSender(), Phrase.build(Phrase.DATABASE_LOCKED_2));
+                            Chat.send(Bukkit.getConsoleSender(), Phrase.build(Phrase.DATABASE_LOCKED_3));
+                            Chat.send(Bukkit.getConsoleSender(), Phrase.build(Phrase.DATABASE_LOCKED_4));
                             return false;
                         }
 

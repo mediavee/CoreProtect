@@ -210,14 +210,14 @@ public class ItemUtils {
         return -1;
     }
 
+    @SuppressWarnings("deprecation")
     public static ItemStack[] getArmorStandContents(EntityEquipment equipment) {
-        ItemStack[] contents = new ItemStack[6];
+        ItemStack[] contents = new ItemStack[5];
         if (equipment != null) {
             // 0: BOOTS, 1: LEGGINGS, 2: CHESTPLATE, 3: HELMET
             ItemStack[] armorContent = equipment.getArmorContents();
             System.arraycopy(armorContent, 0, contents, 0, 4);
-            contents[4] = equipment.getItemInMainHand();
-            contents[5] = equipment.getItemInOffHand();
+            contents[4] = equipment.getItemInHand();
         }
         else {
             Arrays.fill(contents, new ItemStack(Material.AIR));
@@ -315,7 +315,7 @@ public class ItemUtils {
     }
 
     public static Material itemFilter(Material material, boolean blockTable) {
-        if (material == null || (!blockTable && material.isItem())) {
+        if (material == null || (!blockTable && !material.isBlock())) {
             return material;
         }
 
@@ -381,7 +381,7 @@ public class ItemUtils {
         ItemStack item = new ItemStack(MaterialUtils.getType(type), amount);
         item = (ItemStack) net.coreprotect.database.rollback.Rollback.populateItemStack(item, metadata)[2];
         String displayName = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : "";
-        StringBuilder message = new StringBuilder(Color.ITALIC + displayName + Color.GREY);
+        StringBuilder message = new StringBuilder("<italic>" + displayName + "</italic><gray>");
 
         List<String> enchantments = ItemMetaHandler.getEnchantments(item, displayName);
         for (String enchantment : enchantments) {
@@ -392,11 +392,11 @@ public class ItemUtils {
         }
 
         if (!displayName.isEmpty()) {
-            message.insert(0, enchantments.isEmpty() ? Color.WHITE : Color.AQUA);
+            message.insert(0, enchantments.isEmpty() ? "<white>" : "<aqua>");
         }
         else if (!enchantments.isEmpty()) {
             String name = StringUtils.capitalize(item.getType().name().replace("_", " "), true);
-            message.insert(0, Color.AQUA + Color.ITALIC + name);
+            message.insert(0, "<aqua><italic>" + name);
         }
 
         return message.toString();

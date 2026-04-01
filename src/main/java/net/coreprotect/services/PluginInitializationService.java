@@ -42,6 +42,9 @@ public class PluginInitializationService {
         // Load language phrases
         Language.loadPhrases();
 
+        // Initialize Adventure (MiniMessage + audiences)
+        net.coreprotect.adventure.AdventureHandler.initialize(plugin);
+
         // Perform version checks
         boolean start = VersionCheckService.performVersionChecks();
         if (!start) {
@@ -114,7 +117,7 @@ public class PluginInitializationService {
      */
     private static void displayStartupMessages(JavaPlugin plugin) {
         PluginDescriptionFile pluginDescription = plugin.getDescription();
-        ChatUtils.sendConsoleComponentStartup(Bukkit.getServer().getConsoleSender(), Phrase.build(Phrase.ENABLE_SUCCESS, ConfigHandler.EDITION_NAME));
+        ChatUtils.sendConsoleComponentStartup(Phrase.build(Phrase.ENABLE_SUCCESS, ConfigHandler.EDITION_NAME));
 
         if (Config.getGlobal().MYSQL) {
             Chat.console(Phrase.build(Phrase.USING_MYSQL));

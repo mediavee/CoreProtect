@@ -10,7 +10,6 @@ import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 
 public class CancelCommand {
     protected static void runCommand(CommandSender user, Command command, boolean permission, String[] args) {
@@ -29,7 +28,7 @@ public class CancelCommand {
                     }
                 }
                 if (!valid) {
-                    Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_ROLLBACK, Selector.FIRST));
+                    Chat.send(user, Phrase.build(Phrase.NO_ROLLBACK, Selector.FIRST));
                 }
                 else {
                     ConfigHandler.lastRollback.remove(user.getName());
@@ -37,7 +36,7 @@ public class CancelCommand {
                 }
             }
             else {
-                Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_ROLLBACK, Selector.FIRST));
+                Chat.send(user, Phrase.build(Phrase.NO_ROLLBACK, Selector.FIRST));
             }
         }
         catch (Exception e) {

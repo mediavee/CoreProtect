@@ -1,9 +1,5 @@
 package net.coreprotect.language;
 
-import net.coreprotect.utility.ChatMessage;
-import net.coreprotect.utility.Color;
-import net.coreprotect.utility.StringUtils;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -224,9 +220,6 @@ public enum Phrase {
     WORLD_NOT_FOUND;
 
     final private static Set<Phrase> HEADERS = new HashSet<>(Arrays.asList(Phrase.CONTAINER_HEADER, Phrase.HELP_HEADER, Phrase.INTERACTIONS_HEADER, Phrase.LOOKUP_HEADER, Phrase.SIGN_HEADER, Phrase.UPDATE_HEADER));
-    final private static Set<String> COLORS = new HashSet<>(Arrays.asList(Color.WHITE, Color.DARK_AQUA));
-    final private static String SPLIT = ":";
-    final private static String FULL_WIDTH_SPLIT = "：";
 
     public String getPhrase() {
         return Language.getPhrase(this);
@@ -240,36 +233,28 @@ public enum Phrase {
         return Language.getTranslatedPhrase(this);
     }
 
+    /**
+     * Build a phrase with parameters. Returns a MiniMessage-formatted string.
+     * Selectors ({option1|option2}) are resolved, {0}/{1} placeholders are replaced.
+     */
     public static String build(Phrase phrase, String... params) {
         String output = phrase.getTranslatedPhrase();
-
-        // If translated phrase is null, fall back to the default phrase
         if (output == null) {
             output = phrase.getPhrase();
-            // If that's still null, use an empty string to avoid NullPointerException
             if (output == null) {
-                output = "";
+                return "";
             }
         }
 
-        String color = "";
-
         if (HEADERS.contains(phrase)) {
-            output = StringUtils.capitalize(output, true);
+            // Capitalize first letter of each word for headers
+            output = capitalize(output);
         }
 
         int index = 0;
-        int indexExtra = 0;
         for (String param : params) {
-            if (index == 0 && COLORS.contains(param)) {
-                color = param;
-                indexExtra++;
-                continue;
-            }
-
             if (Selector.SELECTORS.contains(param)) {
-                output = Selector.processSelection(output, param, color);
-                indexExtra++;
+                output = Selector.processSelection(output, param);
                 continue;
             }
 
@@ -279,48 +264,11 @@ public enum Phrase {
             }
         }
 
-        if ((index + indexExtra) != params.length) { // fallback for issues with user modified phrases
-            // System.out.println("buildInternal"); // debug
-            output = buildInternal(phrase, params, color);
-        }
-
-        if (color.length() > 0) {
-            output = output.replaceFirst(SPLIT, SPLIT + color);
-            output = output.replaceFirst(FULL_WIDTH_SPLIT, FULL_WIDTH_SPLIT + color);
-            output = ChatMessage.parseQuotes(output, color);
-        }
-
-        return output;
-    }
-
-    private static String buildInternal(Phrase phrase, String[] params, String color) {
-        String output = phrase.getPhrase(); // get internal phrase
-
-        // If internal phrase is null, use an empty string to avoid NullPointerException
-        if (output == null) {
-            output = "";
-            return output; // Return empty string immediately if no phrase is available
-        }
-
-        int index = 0;
-        for (String param : params) {
-            if (index == 0 && COLORS.contains(param)) {
-                continue;
-            }
-            if (Selector.SELECTORS.contains(param)) {
-                output = Selector.processSelection(output, param, color);
-                continue;
-            }
-            output = output.replace("{" + index + "}", param);
-            index++;
-        }
-
         return output;
     }
 
     public static String getPhraseSelector(Phrase phrase, String selector) {
         String translatedPhrase = phrase.getTranslatedPhrase();
-        // Return empty string if translated phrase is null
         if (translatedPhrase == null) {
             return "";
         }
@@ -330,9 +278,45 @@ public enum Phrase {
         String match = "";
         if (patternMatch.find()) {
             match = patternMatch.group(1);
-            match = Selector.processSelection(match, selector, "");
+            match = Selector.processSelection(match, selector);
         }
 
         return match;
+    }
+
+    private static String capitalize(String input) {
+        if (input == null || input.isEmpty()) {
+            return input;
+        }
+        // Strip MiniMessage tags for capitalization, then reapply
+        // Simple approach: capitalize after the last '>' or at start
+        StringBuilder result = new StringBuilder();
+        boolean capitalizeNext = true;
+        boolean inTag = false;
+        for (char c : input.toCharArray()) {
+            if (c == '<') {
+                inTag = true;
+                result.append(c);
+            }
+            else if (c == '>') {
+                inTag = false;
+                result.append(c);
+                capitalizeNext = true;
+            }
+            else if (inTag) {
+                result.append(c);
+            }
+            else if (capitalizeNext && Character.isLetter(c)) {
+                result.append(Character.toUpperCase(c));
+                capitalizeNext = false;
+            }
+            else {
+                if (c == ' ') {
+                    capitalizeNext = true;
+                }
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 }

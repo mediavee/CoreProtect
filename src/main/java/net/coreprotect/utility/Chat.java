@@ -3,72 +3,81 @@ package net.coreprotect.utility;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Server;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import net.coreprotect.spigot.SpigotAdapter;
+import net.coreprotect.adventure.AdventureHandler;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public final class Chat {
-
-    public static final String COMPONENT_TAG_OPEN = "<COMPONENT>";
-    public static final String COMPONENT_TAG_CLOSE = "</COMPONENT>";
-    public static final String COMPONENT_COMMAND = "COMMAND";
-    public static final String COMPONENT_POPUP = "POPUP";
-    public static final String COMPONENT_PIPE = "<PIPE/>";
 
     private Chat() {
         throw new IllegalStateException("Utility class");
     }
 
-    public static void sendComponent(CommandSender sender, String string, String bypass) {
-        SpigotAdapter.ADAPTER.sendComponent(sender, string, bypass);
+    /**
+     * Send a MiniMessage-formatted string to a CommandSender via Adventure.
+     */
+    public static void send(CommandSender sender, String miniMessage) {
+        if (miniMessage == null || miniMessage.isEmpty()) {
+            return;
+        }
+        Component component = AdventureHandler.miniMessage().deserialize(miniMessage);
+        AdventureHandler.audiences().sender(sender).sendMessage(component);
     }
 
-    public static void sendComponent(CommandSender sender, String string) {
-        sendComponent(sender, string, null);
+    /**
+     * Send an Adventure Component to a CommandSender.
+     */
+    public static void send(CommandSender sender, Component component) {
+        AdventureHandler.audiences().sender(sender).sendMessage(component);
     }
 
-    public static void sendMessage(CommandSender sender, String message) {
-        if (sender instanceof ConsoleCommandSender) {
-            message = message.replace(Color.DARK_AQUA, ChatColor.DARK_AQUA.toString());
+    /**
+     * Log a MiniMessage string to console (strips all tags).
+     */
+    public static void console(String string) {
+        String plain = string;
+        if (AdventureHandler.miniMessage() != null) {
+            try {
+                Component component = AdventureHandler.miniMessage().deserialize(string);
+                plain = PlainTextComponentSerializer.plainText().serialize(component);
+            }
+            catch (Exception e) {
+                // Fallback to raw string if MiniMessage parsing fails
+            }
         }
 
-        sender.sendMessage(message);
-    }
-
-    public static void sendConsoleMessage(String string) {
-        Bukkit.getServer().getConsoleSender().sendMessage(string);
-    }
-
-    public static void console(String string) {
-        if (string.startsWith("-") || string.startsWith("[")) {
-            Bukkit.getLogger().log(Level.INFO, string);
+        if (plain.startsWith("-") || plain.startsWith("[")) {
+            Bukkit.getLogger().log(Level.INFO, plain);
         }
         else {
-            Bukkit.getLogger().log(Level.INFO, "[CoreProtect] " + string);
+            Bukkit.getLogger().log(Level.INFO, "[CoreProtect] " + plain);
         }
     }
 
-    public static void sendGlobalMessage(CommandSender user, String string) {
+    /**
+     * Send a MiniMessage string to console + all online ops + the sender.
+     */
+    public static void sendGlobalMessage(CommandSender user, String miniMessage) {
+        Component component = AdventureHandler.miniMessage().deserialize(miniMessage);
+        String plain = PlainTextComponentSerializer.plainText().serialize(component);
+
         if (user instanceof ConsoleCommandSender) {
-            sendMessage(user, Color.DARK_AQUA + "[CoreProtect] " + Color.WHITE + string);
+            AdventureHandler.audiences().sender(user).sendMessage(component);
             return;
         }
 
-        Server server = Bukkit.getServer();
-        server.getConsoleSender().sendMessage("[CoreProtect] " + string);
-        for (Player player : server.getOnlinePlayers()) {
+        Bukkit.getServer().getConsoleSender().sendMessage("[CoreProtect] " + plain);
+        for (Player player : Bukkit.getServer().getOnlinePlayers()) {
             if (player.isOp() && !player.getName().equals(user.getName())) {
-                sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + string);
+                AdventureHandler.audiences().player(player).sendMessage(component);
             }
         }
-        if (user instanceof Player) {
-            if (((Player) user).isOnline()) {
-                sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + string);
-            }
+        if (user instanceof Player && ((Player) user).isOnline()) {
+            AdventureHandler.audiences().player((Player) user).sendMessage(component);
         }
     }
 

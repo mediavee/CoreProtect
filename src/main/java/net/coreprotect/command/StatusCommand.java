@@ -16,7 +16,6 @@ import net.coreprotect.language.Selector;
 import net.coreprotect.patch.Patch;
 import net.coreprotect.thread.NetworkHandler;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.SystemUtils;
 import net.coreprotect.utility.VersionUtils;
 
@@ -25,7 +24,7 @@ public class StatusCommand {
 
     protected static void runCommand(CommandSender player, boolean permission, String[] args) {
         if (!permission) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_PERMISSION));
+            Chat.send(player, Phrase.build(Phrase.NO_PERMISSION));
             return;
         }
 
@@ -48,15 +47,15 @@ public class StatusCommand {
                         }
                     }
 
-                    Chat.sendMessage(player, Color.WHITE + "----- " + Color.DARK_AQUA + "CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : "") + Color.WHITE + " -----");
-                    Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_VERSION, Color.WHITE, ConfigHandler.EDITION_NAME + " v" + pdfFile.getVersion() + ".") + versionCheck);
+                    Chat.send(player, "<white>----- <dark_aqua>CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : "") + " <white>-----");
+                    Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_VERSION, "<white>", ConfigHandler.EDITION_NAME + " v" + pdfFile.getVersion() + ".") + versionCheck);
 
                     String donationKey = NetworkHandler.donationKey();
                     if (donationKey != null) {
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_LICENSE, Color.WHITE, Phrase.build(Phrase.VALID_DONATION_KEY)) + " (" + donationKey + ")");
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_LICENSE, "<white>", Phrase.build(Phrase.VALID_DONATION_KEY)) + " (" + donationKey + ")");
                     }
                     else {
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_LICENSE, Color.WHITE, Phrase.build(Phrase.INVALID_DONATION_KEY)) + Color.GREY + Color.ITALIC + " (" + Phrase.build(Phrase.CHECK_CONFIG) + ")");
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_LICENSE, "<white>", Phrase.build(Phrase.INVALID_DONATION_KEY)) + "<gray><italic> (" + Phrase.build(Phrase.CHECK_CONFIG) + ")");
                     }
 
                     /*
@@ -71,17 +70,17 @@ public class StatusCommand {
                         firstVersion = " (" + Phrase.build(Phrase.FIRST_VERSION, firstVersion) + ")";
                     }
                     if (Config.getGlobal().MYSQL) {
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_DATABASE, Color.WHITE, "MySQL") + firstVersion);
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_DATABASE, "<white>", "MySQL") + firstVersion);
                     }
                     else {
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_DATABASE, Color.WHITE, "SQLite") + firstVersion);
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_DATABASE, "<white>", "SQLite") + firstVersion);
                     }
 
                     if (ConfigHandler.worldeditEnabled) {
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_INTEGRATION, Color.WHITE, "WorldEdit", Selector.FIRST));
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_INTEGRATION, "<white>", "WorldEdit", Selector.FIRST));
                     }
                     else if (instance.getServer().getPluginManager().getPlugin("WorldEdit") != null) {
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_INTEGRATION, Color.WHITE, "WorldEdit", Selector.SECOND));
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_INTEGRATION, "<white>", "WorldEdit", Selector.SECOND));
                     }
 
                     try {
@@ -101,7 +100,7 @@ public class StatusCommand {
                             }
                         }
 
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_CONSUMER, Color.WHITE, String.format("%,d", consumerCount), (consumerCount == 1 ? Selector.FIRST : Selector.SECOND)));
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_CONSUMER, "<white>", String.format("%,d", consumerCount), (consumerCount == 1 ? Selector.FIRST : Selector.SECOND)));
                     }
                     catch (Exception e) {
                         e.printStackTrace();
@@ -147,7 +146,7 @@ public class StatusCommand {
                             systemInformation = cpuInfo + " (" + systemInformation + ")";
                         }
 
-                        Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.STATUS_SYSTEM, Color.WHITE, systemInformation));
+                        Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.STATUS_SYSTEM, "<white>", systemInformation));
                     }
                     catch (Exception e) {
                         e.printStackTrace();
@@ -156,8 +155,8 @@ public class StatusCommand {
                     // Functions.sendMessage(player, Color.DARK_AQUA + "Website: " + Color.WHITE + "www.coreprotect.net/updates/");
 
                     // Functions.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.LINK_DISCORD, Color.WHITE + "www.coreprotect.net/discord/").replaceFirst(":", ":" + Color.WHITE));
-                    Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.LINK_DISCORD, Color.WHITE, "www.coreprotect.net/discord/"));
-                    Chat.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.LINK_PATREON, Color.WHITE, "www.patreon.com/coreprotect/"));
+                    Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.LINK_DISCORD, "<white>", "www.coreprotect.net/discord/"));
+                    Chat.send(player, "<dark_aqua>" + Phrase.build(Phrase.LINK_PATREON, "<white>", "www.patreon.com/coreprotect/"));
 
                     if (player.isOp() && alert.get(player.getName()) == null) {
                         alert.put(player.getName(), true);

@@ -24,18 +24,18 @@ public class InteractionInspector extends BaseInspector {
 
                         if (blockData.contains("\n")) {
                             for (String splitData : blockData.split("\n")) {
-                                Chat.sendComponent(player, splitData);
+                                Chat.send(player, splitData);
                             }
                         }
                         else {
-                            Chat.sendComponent(player, blockData);
+                            Chat.send(player, blockData);
                         }
 
                         statement.close();
                     }
                 }
                 catch (InspectionException e) {
-                    Chat.sendMessage(player, e.getMessage());
+                    Chat.send(player, e.getMessage());
                 }
                 catch (Exception e) {
                     e.printStackTrace();

@@ -23,14 +23,14 @@ public class ContainerInspector extends BaseInspector {
                         Statement statement = connection.createStatement();
                         List<String> blockData = ChestTransactionLookup.performLookup(null, statement, finalLocation, player, 1, 7, false);
                         for (String data : blockData) {
-                            Chat.sendComponent(player, data);
+                            Chat.send(player, data);
                         }
 
                         statement.close();
                     }
                 }
                 catch (InspectionException e) {
-                    Chat.sendMessage(player, e.getMessage());
+                    Chat.send(player, e.getMessage());
                 }
                 catch (Exception e) {
                     e.printStackTrace();

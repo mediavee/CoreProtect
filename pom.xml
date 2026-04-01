@@ -70,6 +70,12 @@
                     <exclude>META-INF/services/**</exclude>
                   </excludes>
                 </filter>
+                <filter>
+                  <artifact>net.kyori:*</artifact>
+                  <excludes>
+                    <exclude>**/*.java</exclude>
+                  </excludes>
+                </filter>
               </filters>
               <artifactSet>
                 <excludes>
@@ -93,6 +99,10 @@
                 <relocation>
                   <pattern>io.papermc.lib</pattern>
                   <shadedPattern>net.coreprotect.libs.paperlib</shadedPattern>
+                </relocation>
+                <relocation>
+                  <pattern>net.kyori</pattern>
+                  <shadedPattern>net.coreprotect.libs.kyori</shadedPattern>
                 </relocation>
               </relocations>
             </configuration>
@@ -233,6 +243,32 @@
       <artifactId>worldedit-core</artifactId>
       <version>6.1</version>
       <scope>provided</scope>
+    </dependency>
+    <!-- Adventure (MiniMessage + platform adapter for 1.8) -->
+    <dependency>
+      <groupId>net.kyori</groupId>
+      <artifactId>adventure-api</artifactId>
+      <version>4.17.0</version>
+    </dependency>
+    <dependency>
+      <groupId>net.kyori</groupId>
+      <artifactId>adventure-text-minimessage</artifactId>
+      <version>4.17.0</version>
+    </dependency>
+    <dependency>
+      <groupId>net.kyori</groupId>
+      <artifactId>adventure-text-serializer-plain</artifactId>
+      <version>4.17.0</version>
+    </dependency>
+    <dependency>
+      <groupId>net.kyori</groupId>
+      <artifactId>adventure-text-serializer-legacy</artifactId>
+      <version>4.17.0</version>
+    </dependency>
+    <dependency>
+      <groupId>net.kyori</groupId>
+      <artifactId>adventure-platform-bukkit</artifactId>
+      <version>4.3.4</version>
     </dependency>
     <dependency>
       <groupId>com.zaxxer</groupId>

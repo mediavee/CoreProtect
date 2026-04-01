@@ -32,7 +32,7 @@ public class SignInspector extends BaseInspector {
                             }
 
                             if (signMessage.length() > 0) {
-                                Chat.sendComponent(player, signMessage, bypass);
+                                Chat.send(player, signMessage + (bypass != null ? bypass : ""));
                             }
                         }
 
@@ -40,7 +40,7 @@ public class SignInspector extends BaseInspector {
                     }
                 }
                 catch (InspectionException e) {
-                    Chat.sendMessage(player, e.getMessage());
+                    Chat.send(player, e.getMessage());
                 }
                 catch (Exception e) {
                     e.printStackTrace();

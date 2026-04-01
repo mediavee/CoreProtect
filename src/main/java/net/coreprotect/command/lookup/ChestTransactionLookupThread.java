@@ -13,7 +13,6 @@ import net.coreprotect.database.Database;
 import net.coreprotect.database.lookup.ChestTransactionLookup;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 
 public class ChestTransactionLookupThread implements Runnable {
     private final CommandSender player;
@@ -38,12 +37,12 @@ public class ChestTransactionLookupThread implements Runnable {
                 Statement statement = connection.createStatement();
                 List<String> blockData = ChestTransactionLookup.performLookup(command.getName(), statement, location, player, page, limit, false);
                 for (String data : blockData) {
-                    Chat.sendComponent(player, data);
+                    Chat.send(player, data);
                 }
                 statement.close();
             }
             else {
-                Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.DATABASE_BUSY));
+                Chat.send(player, Phrase.build(Phrase.DATABASE_BUSY));
             }
         }
         catch (Exception e) {

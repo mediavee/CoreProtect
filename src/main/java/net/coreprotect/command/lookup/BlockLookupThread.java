@@ -15,7 +15,6 @@ import net.coreprotect.database.lookup.InteractionLookup;
 import net.coreprotect.database.lookup.SignMessageLookup;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 
 public class BlockLookupThread implements Runnable {
     private final CommandSender player;
@@ -54,7 +53,7 @@ public class BlockLookupThread implements Runnable {
                         }
 
                         if (signMessage.length() > 0) {
-                            Chat.sendComponent(player, signMessage, bypass);
+                            Chat.send(player, signMessage + (bypass != null ? bypass : ""));
                         }
                     }
                 }
@@ -68,17 +67,17 @@ public class BlockLookupThread implements Runnable {
                     }
                     if (blockdata.contains("\n")) {
                         for (String b : blockdata.split("\n")) {
-                            Chat.sendComponent(player, b);
+                            Chat.send(player, b);
                         }
                     }
                     else if (blockdata.length() > 0) {
-                        Chat.sendComponent(player, blockdata);
+                        Chat.send(player, blockdata);
                     }
                 }
                 statement.close();
             }
             else {
-                Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.DATABASE_BUSY));
+                Chat.send(player, Phrase.build(Phrase.DATABASE_BUSY));
             }
         }
         catch (Exception e) {

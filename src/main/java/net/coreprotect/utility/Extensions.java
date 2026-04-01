@@ -15,8 +15,7 @@ public class Extensions {
             patchMethod.invoke(null, user, argumentArray);
         }
         catch (Exception e) {
-            // plugin not compiled with extension
-            Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.COMMAND_NOT_FOUND, Color.WHITE, "/co " + command));
+            Chat.send(user, Phrase.build(Phrase.COMMAND_NOT_FOUND, "/co " + command));
         }
     }
 

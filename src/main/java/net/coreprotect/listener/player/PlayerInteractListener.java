@@ -35,7 +35,6 @@ import net.coreprotect.listener.player.inspector.SignInspector;
 import net.coreprotect.model.BlockGroup;
 import net.coreprotect.thread.CacheHandler;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.ItemUtils;
 import net.coreprotect.utility.Util;
 import net.coreprotect.utility.WorldUtils;
@@ -60,7 +59,7 @@ public final class PlayerInteractListener extends Queue implements Listener {
         }
 
         if (!player.hasPermission("coreprotect.inspect")) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_PERMISSION));
+            Chat.send(player, Phrase.build(Phrase.NO_PERMISSION));
             ConfigHandler.inspecting.put(player.getName(), false);
             return;
         }

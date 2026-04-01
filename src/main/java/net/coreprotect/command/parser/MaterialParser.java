@@ -15,7 +15,6 @@ import org.bukkit.entity.EntityType;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.model.BlockGroup;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.EntityUtils;
 import net.coreprotect.utility.MaterialUtils;
 
@@ -74,7 +73,7 @@ public class MaterialParser {
                                         restricted.add(i3_material);
                                     }
                                     else {
-                                        Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.INVALID_INCLUDE, i3));
+                                        Chat.send(player, Phrase.build(Phrase.INVALID_INCLUDE, i3));
                                         // Functions.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co help include"));
                                         return null;
                                     }
@@ -103,7 +102,7 @@ public class MaterialParser {
                                     restricted.add(material);
                                 }
                                 else {
-                                    Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.INVALID_INCLUDE, argument));
+                                    Chat.send(player, Phrase.build(Phrase.INVALID_INCLUDE, argument));
                                     // Functions.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co help include"));
                                     return null;
                                 }

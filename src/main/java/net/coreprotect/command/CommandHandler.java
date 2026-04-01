@@ -11,7 +11,6 @@ import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.thread.NetworkHandler;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.Extensions;
 import net.coreprotect.utility.VersionUtils;
 
@@ -121,18 +120,18 @@ public class CommandHandler implements CommandExecutor {
                 }
                 else if (corecommand.equals("migrate-db")) {
                     if (!VersionUtils.validDonationKey()) {
-                        Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.DONATION_KEY_REQUIRED));
+                        Chat.send(user, Phrase.build(Phrase.DONATION_KEY_REQUIRED));
                     }
                     else {
                         Extensions.runDatabaseMigration(corecommand, user, argumentArray);
                     }
                 }
                 else {
-                    Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.COMMAND_NOT_FOUND, Color.WHITE, "/co " + corecommand));
+                    Chat.send(user, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.COMMAND_NOT_FOUND, "<white>", "/co " + corecommand));
                 }
             }
             else {
-                Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, Color.WHITE, "/co <parameters>"));
+                Chat.send(user, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "<white>", "/co \\<parameters>"));
             }
 
             if (user.isOp() && versionAlert.get(user.getName()) == null) {
@@ -145,14 +144,14 @@ public class CommandHandler implements CommandExecutor {
                         public void run() {
                             try {
                                 Thread.sleep(5000);
-                                Chat.sendMessage(user, Color.WHITE + "----- " + Color.DARK_AQUA + Phrase.build(Phrase.UPDATE_HEADER, "CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : "")) + Color.WHITE + " -----");
+                                Chat.send(user, "<white>----- <dark_aqua>" + Phrase.build(Phrase.UPDATE_HEADER, "CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : "")) + " <white>-----");
                                 if (latestVersion != null) {
-                                    Chat.sendMessage(user, Color.DARK_AQUA + Phrase.build(Phrase.UPDATE_NOTICE, Color.WHITE, "CoreProtect CE v" + latestVersion));
-                                    Chat.sendMessage(user, Color.DARK_AQUA + Phrase.build(Phrase.LINK_DOWNLOAD, Color.WHITE, "www.coreprotect.net/download/"));
+                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect CE v" + latestVersion));
+                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/download/"));
                                 }
                                 else if (!VersionUtils.isCommunityEdition()) {
-                                    Chat.sendMessage(user, Color.DARK_AQUA + Phrase.build(Phrase.UPDATE_NOTICE, Color.WHITE, "CoreProtect v" + latestEdgeVersion));
-                                    Chat.sendMessage(user, Color.DARK_AQUA + Phrase.build(Phrase.LINK_DOWNLOAD, Color.WHITE, "www.coreprotect.net/latest/"));
+                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect v" + latestEdgeVersion));
+                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/latest/"));
                                 }
                             }
                             catch (Exception e) {

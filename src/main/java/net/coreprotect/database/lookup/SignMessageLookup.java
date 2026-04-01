@@ -16,12 +16,11 @@ import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.listener.channel.PluginChannelListener;
 import net.coreprotect.utility.ChatUtils;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.WorldUtils;
 
 public class SignMessageLookup {
 
-    static Pattern pattern = Pattern.compile("§x(§[a-fA-F0-9]){6}");
+    static Pattern pattern = Pattern.compile("\u00a7x(\u00a7[a-fA-F0-9]){6}");
 
     public static List<String> performLookup(String command, Statement statement, Location l, CommandSender commandSender, int page, int limit) {
         List<String> result = new ArrayList<>();
@@ -133,7 +132,7 @@ public class SignMessageLookup {
                 }
 
                 String parsedMessage = message.toString();
-                if (parsedMessage.contains("§x")) {
+                if (parsedMessage.contains("\u00a7x")) {
                     for (Matcher matcher = pattern.matcher(parsedMessage); matcher.find(); matcher = pattern.matcher(parsedMessage)) {
                         String color = parsedMessage.substring(matcher.start(), matcher.end());
                         parsedMessage = parsedMessage.replace(color, "");
@@ -148,26 +147,26 @@ public class SignMessageLookup {
                 String timeAgo = ChatUtils.getTimeSince(resultTime, time, true);
 
                 if (!found) {
-                    result.add(new StringBuilder(Color.WHITE + "----- " + Color.DARK_AQUA + Phrase.build(Phrase.SIGN_HEADER) + Color.WHITE + " ----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false) + "").toString());
+                    result.add("<white>----- <dark_aqua>" + Phrase.build(Phrase.SIGN_HEADER) + "<white> ----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false));
                 }
                 found = true;
-                result.add(timeAgo + Color.WHITE + " - " + Color.DARK_AQUA + resultUser + ": " + Color.WHITE + "\n" + parsedMessage + Color.WHITE);
+                result.add(timeAgo + "<white> - <dark_aqua>" + resultUser + ": <white>\n" + parsedMessage + "<white>");
                 PluginChannelListener.getInstance().sendMessageData(commandSender, resultTime, resultUser, message.toString(), true, x, y, z, worldId);
             }
             results.close();
 
             if (found) {
                 if (count > limit) {
-                    result.add(Color.WHITE + "-----");
+                    result.add("<white>-----");
                     result.add(ChatUtils.getPageNavigation(command, page, totalPages));
                 }
             }
             else {
                 if (rowMax > count && count > 0) {
-                    result.add(Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_RESULTS_PAGE, Selector.SECOND));
+                    result.add(Phrase.build(Phrase.NO_RESULTS_PAGE, Selector.SECOND));
                 }
                 else {
-                    result.add(Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_DATA_LOCATION, Selector.FOURTH));
+                    result.add(Phrase.build(Phrase.NO_DATA_LOCATION, Selector.FOURTH));
                 }
             }
 

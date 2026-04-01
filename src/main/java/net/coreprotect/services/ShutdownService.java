@@ -65,6 +65,7 @@ public class ShutdownService {
 
             ConfigHandler.performDisable();
             Chat.console(Phrase.build(Phrase.DISABLE_SUCCESS, "CoreProtect v" + plugin.getDescription().getVersion()));
+            net.coreprotect.adventure.AdventureHandler.shutdown();
         }
         catch (Exception e) {
             e.printStackTrace();

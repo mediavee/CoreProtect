@@ -23,7 +23,6 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionEffect;
 
 import net.coreprotect.bukkit.BukkitAdapter;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.ItemUtils;
 import net.coreprotect.utility.StringUtils;
 
@@ -105,7 +104,7 @@ public class ItemMetaHandler {
 
         if (itemMeta.hasLore()) {
             for (String lore : itemMeta.getLore()) {
-                result.add(Color.DARK_PURPLE + Color.ITALIC + lore);
+                result.add("<dark_purple><italic>" + lore);
             }
         }
 

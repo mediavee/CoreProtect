@@ -26,11 +26,11 @@ public class BlockInspector extends BaseInspector {
                         String resultData = BlockLookup.performLookup(null, statement, blockState, player, 0, 1, 7);
                         if (resultData.contains("\n")) {
                             for (String b : resultData.split("\n")) {
-                                Chat.sendComponent(player, b);
+                                Chat.send(player, b);
                             }
                         }
                         else if (resultData.length() > 0) {
-                            Chat.sendComponent(player, resultData);
+                            Chat.send(player, resultData);
                         }
 
                         statement.close();
@@ -43,7 +43,7 @@ public class BlockInspector extends BaseInspector {
                     }
                 }
                 catch (InspectionException e) {
-                    Chat.sendMessage(player, e.getMessage());
+                    Chat.send(player, e.getMessage());
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -73,22 +73,22 @@ public class BlockInspector extends BaseInspector {
 
                             if (blockData.contains("\n")) {
                                 for (String b : blockData.split("\n")) {
-                                    Chat.sendComponent(player, b);
+                                    Chat.send(player, b);
                                 }
                             }
                             else if (blockData.length() > 0) {
-                                Chat.sendComponent(player, blockData);
+                                Chat.send(player, blockData);
                             }
                         }
                         else {
                             String blockData = BlockLookup.performLookup(null, statement, finalBlock, player, 0, 1, 7);
                             if (blockData.contains("\n")) {
                                 for (String splitData : blockData.split("\n")) {
-                                    Chat.sendComponent(player, splitData);
+                                    Chat.send(player, splitData);
                                 }
                             }
                             else if (blockData.length() > 0) {
-                                Chat.sendComponent(player, blockData);
+                                Chat.send(player, blockData);
                             }
                         }
 
@@ -96,7 +96,7 @@ public class BlockInspector extends BaseInspector {
                     }
                 }
                 catch (InspectionException e) {
-                    Chat.sendMessage(player, e.getMessage());
+                    Chat.send(player, e.getMessage());
                 }
                 catch (Exception e) {
                     e.printStackTrace();

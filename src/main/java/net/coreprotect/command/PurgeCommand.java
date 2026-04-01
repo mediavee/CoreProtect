@@ -26,8 +26,6 @@ import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.patch.Patch;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.ChatMessage;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.EntityUtils;
 import net.coreprotect.utility.MaterialUtils;
 import net.coreprotect.utility.VersionUtils;
@@ -53,45 +51,45 @@ public class PurgeCommand extends Consumer {
         }
 
         if (ConfigHandler.converterRunning || ConfigHandler.migrationRunning) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.UPGRADE_IN_PROGRESS));
+            Chat.send(player, Phrase.build(Phrase.UPGRADE_IN_PROGRESS));
             return;
         }
         if (ConfigHandler.purgeRunning) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.PURGE_IN_PROGRESS));
+            Chat.send(player, Phrase.build(Phrase.PURGE_IN_PROGRESS));
             return;
         }
         if (!permission) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_PERMISSION));
+            Chat.send(player, Phrase.build(Phrase.NO_PERMISSION));
             return;
         }
         if (resultc <= 1) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:<time>"));
+            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:\\<time>"));
             return;
         }
         if (endTime <= 0) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:<time>"));
+            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:\\<time>"));
             return;
         }
         if (argRadius != null) {
-            Chat.sendMessage(player, new ChatMessage(Phrase.build(Phrase.INVALID_WORLD)).build());
+            Chat.send(player, Phrase.build(Phrase.INVALID_WORLD));
             return;
         }
         if (argWid == -1) {
             String worldName = CommandParser.parseWorldName(args, false);
-            Chat.sendMessage(player, new ChatMessage(Phrase.build(Phrase.WORLD_NOT_FOUND, worldName)).build());
+            Chat.send(player, Phrase.build(Phrase.WORLD_NOT_FOUND, worldName));
             return;
         }
         if (player instanceof Player && endTime < 2592000) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.PURGE_MINIMUM_TIME, "30", Selector.FIRST)); // 30 days
+            Chat.send(player, Phrase.build(Phrase.PURGE_MINIMUM_TIME, "30", Selector.FIRST)); // 30 days
             return;
         }
         else if (endTime < 86400) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.PURGE_MINIMUM_TIME, "24", Selector.SECOND)); // 24 hours
+            Chat.send(player, Phrase.build(Phrase.PURGE_MINIMUM_TIME, "24", Selector.SECOND)); // 24 hours
             return;
         }
         for (int action : argAction) {
             if (!supportedActions.contains(action)) {
-                Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.ACTION_NOT_SUPPORTED));
+                Chat.send(player, Phrase.build(Phrase.ACTION_NOT_SUPPORTED));
                 // Functions.sendMessage(player, new ChatMessage("Please specify a valid purge action.").build());
                 return;
             }
@@ -159,7 +157,7 @@ public class PurgeCommand extends Consumer {
         }
 
         if (entity) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.ACTION_NOT_SUPPORTED));
+            Chat.send(player, Phrase.build(Phrase.ACTION_NOT_SUPPORTED));
             return;
         }
 
@@ -475,7 +473,7 @@ public class PurgeCommand extends Consumer {
                             (new File(ConfigHandler.path + ConfigHandler.sqlite + ".tmp")).delete();
                         }
                         ConfigHandler.loadDatabase();
-                        Chat.sendGlobalMessage(player, Color.RED + Phrase.build(Phrase.PURGE_ABORTED));
+                        Chat.sendGlobalMessage(player, "<red>" + Phrase.build(Phrase.PURGE_ABORTED));
                         Consumer.isPaused = false;
                         ConfigHandler.purgeRunning = false;
                         return;

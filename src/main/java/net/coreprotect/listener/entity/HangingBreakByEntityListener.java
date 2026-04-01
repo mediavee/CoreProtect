@@ -26,33 +26,31 @@ import net.coreprotect.database.lookup.BlockLookup;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.listener.player.PlayerInteractEntityListener;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.MaterialUtils;
 
 public final class HangingBreakByEntityListener extends Queue implements Listener {
 
     static void inspectItemFrame(final BlockState block, final Player player) {
-        // block check
         class BasicThread implements Runnable {
             @Override
             public void run() {
                 if (!player.hasPermission("coreprotect.inspect")) {
-                    Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_PERMISSION));
+                    Chat.send(player, Phrase.build(Phrase.NO_PERMISSION));
                     ConfigHandler.inspecting.put(player.getName(), false);
                     return;
                 }
                 if (ConfigHandler.converterRunning) {
-                    Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.UPGRADE_IN_PROGRESS));
+                    Chat.send(player, Phrase.build(Phrase.UPGRADE_IN_PROGRESS));
                     return;
                 }
                 if (ConfigHandler.purgeRunning) {
-                    Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.PURGE_IN_PROGRESS));
+                    Chat.send(player, Phrase.build(Phrase.PURGE_IN_PROGRESS));
                     return;
                 }
                 if (ConfigHandler.lookupThrottle.get(player.getName()) != null) {
                     Object[] lookupThrottle = ConfigHandler.lookupThrottle.get(player.getName());
                     if ((boolean) lookupThrottle[0] || ((System.currentTimeMillis() - (long) lookupThrottle[1])) < 100) {
-                        Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.DATABASE_BUSY));
+                        Chat.send(player, Phrase.build(Phrase.DATABASE_BUSY));
                         return;
                     }
                 }
@@ -65,17 +63,17 @@ public final class HangingBreakByEntityListener extends Queue implements Listene
 
                         if (blockData.contains("\n")) {
                             for (String b : blockData.split("\n")) {
-                                Chat.sendComponent(player, b);
+                                Chat.send(player, b);
                             }
                         }
                         else if (blockData.length() > 0) {
-                            Chat.sendComponent(player, blockData);
+                            Chat.send(player, blockData);
                         }
 
                         statement.close();
                     }
                     else {
-                        Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.DATABASE_BUSY));
+                        Chat.send(player, Phrase.build(Phrase.DATABASE_BUSY));
                     }
                 }
                 catch (Exception e) {
@@ -103,7 +101,6 @@ public final class HangingBreakByEntityListener extends Queue implements Listene
 
             if (ConfigHandler.inspecting.get(player.getName()) != null) {
                 if (ConfigHandler.inspecting.get(player.getName())) {
-                    // block check
                     inspectItemFrame(blockEvent, player);
                     event.setCancelled(true);
                     inspecting = true;

@@ -10,7 +10,6 @@ import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 
 public class UndoCommand {
     protected static void runCommand(CommandSender user, Command command, boolean permission, String[] args) {
@@ -43,7 +42,7 @@ public class UndoCommand {
                 }
             }
             else {
-                Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_ROLLBACK, Selector.SECOND));
+                Chat.send(user, Phrase.build(Phrase.NO_ROLLBACK, Selector.SECOND));
             }
         }
         catch (Exception e) {

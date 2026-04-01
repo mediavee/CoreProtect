@@ -11,8 +11,6 @@ import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.thread.Scheduler;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.ChatMessage;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.Teleport;
 import net.coreprotect.utility.Util;
 import net.coreprotect.utility.WorldUtils;
@@ -23,32 +21,32 @@ public class TeleportCommand {
         int resultc = args.length;
 
         if (!permission) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_PERMISSION));
+            Chat.send(player, Phrase.build(Phrase.NO_PERMISSION));
             return;
         }
 
         if (!(player instanceof Player)) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.TELEPORT_PLAYERS));
+            Chat.send(player, Phrase.build(Phrase.TELEPORT_PLAYERS));
             return;
         }
 
         if (ConfigHandler.teleportThrottle.get(player.getName()) != null) {
             Object[] lookupThrottle = ConfigHandler.teleportThrottle.get(player.getName());
             if ((boolean) lookupThrottle[0] || ((System.currentTimeMillis() - (long) lookupThrottle[1])) < 500) {
-                Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.COMMAND_THROTTLED));
+                Chat.send(player, Phrase.build(Phrase.COMMAND_THROTTLED));
                 return;
             }
         }
 
         if (resultc < 3) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport <world> <x> <y> <z>"));
+            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport \\<world> \\<x> \\<y> \\<z>"));
             return;
         }
 
         String worldName = args[1];
         int wid = WorldUtils.matchWorld(worldName);
         if (wid == -1 && resultc >= 5) {
-            Chat.sendMessage(player, new ChatMessage(Phrase.build(Phrase.WORLD_NOT_FOUND, worldName)).build());
+            Chat.send(player, Phrase.build(Phrase.WORLD_NOT_FOUND, worldName));
             return;
         }
 
@@ -91,7 +89,7 @@ public class TeleportCommand {
         String zValidate = z.replaceAll("[^.\\-]", "");
 
         if ((x.length() == 0 || x.length() >= 12 || x.equals(xValidate)) || (y.length() == 0 || y.length() >= 12 || y.equals(yValidate)) || (z.length() == 0 || z.length() >= 12 || z.equals(zValidate))) {
-            Chat.sendMessage(player, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport <world> <x> <y> <z>"));
+            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport \\<world> \\<x> \\<y> \\<z>"));
             return;
         }
 

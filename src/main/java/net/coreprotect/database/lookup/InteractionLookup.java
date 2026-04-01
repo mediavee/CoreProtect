@@ -14,7 +14,6 @@ import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.listener.channel.PluginChannelListener;
 import net.coreprotect.utility.ChatUtils;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.MaterialUtils;
 import net.coreprotect.utility.StringUtils;
 import net.coreprotect.utility.WorldUtils;
@@ -87,13 +86,15 @@ public class InteractionLookup {
                 String timeAgo = ChatUtils.getTimeSince(resultTime, time, true);
 
                 if (!found) {
-                    resultBuilder = new StringBuilder(Color.WHITE + "----- " + Color.DARK_AQUA + Phrase.build(Phrase.INTERACTIONS_HEADER) + Color.WHITE + " ----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false) + "\n");
+                    resultBuilder = new StringBuilder("<white>----- <dark_aqua>" + Phrase.build(Phrase.INTERACTIONS_HEADER) + "<white> ----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false) + "\n");
                 }
                 found = true;
 
                 String rbFormat = "";
+                String rbFormatClose = "";
                 if (resultRolledBack == 1 || resultRolledBack == 3) {
-                    rbFormat = Color.STRIKETHROUGH;
+                    rbFormat = "<strikethrough>";
+                    rbFormatClose = "</strikethrough>";
                 }
 
                 Material resultMaterial = MaterialUtils.getType(resultType);
@@ -111,7 +112,7 @@ public class InteractionLookup {
                     target = target.split(":")[1];
                 }
 
-                resultBuilder.append(timeAgo + " " + Color.WHITE + "- ").append(Phrase.build(Phrase.LOOKUP_INTERACTION, Color.DARK_AQUA + rbFormat + resultUser + Color.WHITE + rbFormat, Color.DARK_AQUA + rbFormat + target + Color.WHITE, Selector.FIRST)).append("\n");
+                resultBuilder.append(timeAgo + " <white>- ").append(Phrase.build(Phrase.LOOKUP_INTERACTION, "<dark_aqua>" + rbFormat + resultUser + rbFormatClose + "<white>" + rbFormat + rbFormatClose, "<dark_aqua>" + rbFormat + target + rbFormatClose + "<white>", Selector.FIRST)).append("\n");
                 PluginChannelListener.getInstance().sendData(commandSender, resultTime, Phrase.LOOKUP_INTERACTION, Selector.FIRST, resultUser, target, -1, x, y, z, worldId, rbFormat, false, false);
             }
             result = resultBuilder.toString();
@@ -119,17 +120,17 @@ public class InteractionLookup {
 
             if (found) {
                 if (count > limit) {
-                    String pageInfo = Color.WHITE + "-----\n";
+                    String pageInfo = "<white>-----\n";
                     pageInfo = pageInfo + ChatUtils.getPageNavigation(command, page, totalPages) + "\n";
                     result = result + pageInfo;
                 }
             }
             else {
                 if (rowMax > count && count > 0) {
-                    result = Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_RESULTS_PAGE, Selector.SECOND);
+                    result = Phrase.build(Phrase.NO_RESULTS_PAGE, Selector.SECOND);
                 }
                 else {
-                    result = Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_DATA_LOCATION, Selector.THIRD);
+                    result = Phrase.build(Phrase.NO_DATA_LOCATION, Selector.THIRD);
                 }
             }
 

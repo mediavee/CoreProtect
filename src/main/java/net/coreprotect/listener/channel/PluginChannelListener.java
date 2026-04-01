@@ -14,7 +14,6 @@ import net.coreprotect.config.Config;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.WorldUtils;
 
 public class PluginChannelListener implements Listener {
@@ -197,7 +196,7 @@ public class PluginChannelListener implements Listener {
                 break;
         }
 
-        commandSender.sendMessage(Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NETWORK_TEST));
+        Chat.send(commandSender, Phrase.build(Phrase.NETWORK_TEST));
     }
 
     private void send(CommandSender commandSender, byte[] msgBytes) {

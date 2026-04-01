@@ -32,7 +32,6 @@ import net.coreprotect.language.Selector;
 import net.coreprotect.model.BlockGroup;
 import net.coreprotect.thread.Scheduler;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.DatabaseUtils;
 import net.coreprotect.utility.WorldUtils;
 
@@ -178,7 +177,7 @@ public class Rollback extends RollbackUtil {
                 userString = user.getName();
                 if (verbose && preview == 0 && !actionList.contains(11)) {
                     Integer chunks = chunkList.size();
-                    Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.ROLLBACK_CHUNKS_FOUND, chunks.toString(), (chunks == 1 ? Selector.FIRST : Selector.SECOND)));
+                    Chat.send(user, Phrase.build(Phrase.ROLLBACK_CHUNKS_FOUND, chunks.toString(), (chunks == 1 ? Selector.FIRST : Selector.SECOND)));
                 }
             }
 
@@ -302,7 +301,7 @@ public class Rollback extends RollbackUtil {
 
                 if (verbose && user != null && preview == 0 && !actionList.contains(11)) {
                     Integer chunks = chunkList.size();
-                    Chat.sendMessage(user, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.ROLLBACK_CHUNKS_MODIFIED, chunkCount.toString(), chunks.toString(), (chunks == 1 ? Selector.FIRST : Selector.SECOND)));
+                    Chat.send(user, Phrase.build(Phrase.ROLLBACK_CHUNKS_MODIFIED, chunkCount.toString(), chunks.toString(), (chunks == 1 ? Selector.FIRST : Selector.SECOND)));
                 }
             }
 

@@ -23,7 +23,6 @@ import net.coreprotect.database.lookup.ChestTransactionLookup;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.model.BlockGroup;
 import net.coreprotect.utility.Chat;
-import net.coreprotect.utility.Color;
 import net.coreprotect.utility.ItemUtils;
 
 public final class ArmorStandManipulateListener extends Queue implements Listener {
@@ -33,22 +32,22 @@ public final class ArmorStandManipulateListener extends Queue implements Listene
             @Override
             public void run() {
                 if (!finalPlayer.hasPermission("coreprotect.inspect")) {
-                    Chat.sendMessage(finalPlayer, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.NO_PERMISSION));
+                    Chat.send(finalPlayer, Phrase.build(Phrase.NO_PERMISSION));
                     ConfigHandler.inspecting.put(finalPlayer.getName(), false);
                     return;
                 }
                 if (ConfigHandler.converterRunning) {
-                    Chat.sendMessage(finalPlayer, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.UPGRADE_IN_PROGRESS));
+                    Chat.send(finalPlayer, Phrase.build(Phrase.UPGRADE_IN_PROGRESS));
                     return;
                 }
                 if (ConfigHandler.purgeRunning) {
-                    Chat.sendMessage(finalPlayer, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.PURGE_IN_PROGRESS));
+                    Chat.send(finalPlayer, Phrase.build(Phrase.PURGE_IN_PROGRESS));
                     return;
                 }
                 if (ConfigHandler.lookupThrottle.get(finalPlayer.getName()) != null) {
                     Object[] lookupThrottle = ConfigHandler.lookupThrottle.get(finalPlayer.getName());
                     if ((boolean) lookupThrottle[0] || ((System.currentTimeMillis() - (long) lookupThrottle[1])) < 100) {
-                        Chat.sendMessage(finalPlayer, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.DATABASE_BUSY));
+                        Chat.send(finalPlayer, Phrase.build(Phrase.DATABASE_BUSY));
                         return;
                     }
                 }
@@ -59,12 +58,12 @@ public final class ArmorStandManipulateListener extends Queue implements Listene
                         Statement statement = connection.createStatement();
                         List<String> blockData = ChestTransactionLookup.performLookup(null, statement, location, finalPlayer, 1, 7, true);
                         for (String data : blockData) {
-                            Chat.sendComponent(finalPlayer, data);
+                            Chat.send(finalPlayer, data);
                         }
                         statement.close();
                     }
                     else {
-                        Chat.sendMessage(finalPlayer, Color.DARK_AQUA + "CoreProtect " + Color.WHITE + "- " + Phrase.build(Phrase.DATABASE_BUSY));
+                        Chat.send(finalPlayer, Phrase.build(Phrase.DATABASE_BUSY));
                     }
                 }
                 catch (Exception e) {
@@ -92,7 +91,6 @@ public final class ArmorStandManipulateListener extends Queue implements Listene
         if (ConfigHandler.inspecting.get(player.getName()) != null) {
             if (ConfigHandler.inspecting.get(player.getName())) {
                 if (BlockGroup.CONTAINERS.contains(Material.ARMOR_STAND)) {
-                    // logged armor stand items
                     inspectHangingTransactions(armorStand.getLocation(), player);
                 }
 
