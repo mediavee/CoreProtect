@@ -30,6 +30,9 @@ public final class BlockPlaceListener extends Queue implements Listener {
         if (!event.isCancelled() && Config.getConfig(world).BLOCK_PLACE) {
             Player player = event.getPlayer();
             Block blockPlaced = event.getBlockPlaced();
+            if (Config.getConfig(world).BLOCK_PLACE_BLACKLIST.contains(blockPlaced.getType())) {
+                return;
+            }
             Block blockLogged = blockPlaced;
             String bBlockData = null;
             BlockState blockReplaced = event.getBlockReplacedState();

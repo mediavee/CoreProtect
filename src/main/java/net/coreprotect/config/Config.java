@@ -9,12 +9,17 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.World;
 
 import net.coreprotect.CoreProtect;
@@ -90,6 +95,8 @@ public class Config extends Language {
     public int MYSQL_PORT;
     public int DEFAULT_RADIUS;
     public int MAX_RADIUS;
+    public Set<Material> BLOCK_BREAK_BLACKLIST;
+    public Set<Material> BLOCK_PLACE_BLACKLIST;
 
     static {
         DEFAULT_VALUES.put("donation-key", "");
@@ -110,7 +117,9 @@ public class Config extends Language {
         DEFAULT_VALUES.put("rollback-entities", "true");
         DEFAULT_VALUES.put("skip-generic-data", "true");
         DEFAULT_VALUES.put("block-place", "true");
+        DEFAULT_VALUES.put("block-place-blacklist", "");
         DEFAULT_VALUES.put("block-break", "true");
+        DEFAULT_VALUES.put("block-break-blacklist", "");
         DEFAULT_VALUES.put("natural-break", "true");
         DEFAULT_VALUES.put("block-movement", "true");
         DEFAULT_VALUES.put("pistons", "true");
@@ -153,7 +162,9 @@ public class Config extends Language {
         HEADERS.put("rollback-entities", new String[] { "# If enabled, entities, such as killed animals, will be included in rollbacks." });
         HEADERS.put("skip-generic-data", new String[] { "# If enabled, generic data, like zombies burning in daylight, won't be logged." });
         HEADERS.put("block-place", new String[] { "# Logs blocks placed by players." });
+        HEADERS.put("block-place-blacklist", new String[] { "# Comma-separated list of block types excluded from place logging.", "# Example: block-place-blacklist: WHEAT,CARROTS,POTATOES" });
         HEADERS.put("block-break", new String[] { "# Logs blocks broken by players." });
+        HEADERS.put("block-break-blacklist", new String[] { "# Comma-separated list of block types excluded from break logging.", "# Useful to skip high-volume farming blocks (crops, pumpkins, melons, ...).", "# Example: block-break-blacklist: WHEAT,CARROTS,POTATOES,BEETROOTS,PUMPKIN,MELON,SUGAR_CANE,NETHER_WART,COCOA" });
         HEADERS.put("natural-break", new String[] { "# Logs blocks that break off of other blocks; for example, a sign or torch", "# falling off of a dirt block that a player breaks. This is required for", "# beds/doors to properly rollback." });
         HEADERS.put("block-movement", new String[] { "# Properly track block movement, such as sand or gravel falling." });
         HEADERS.put("pistons", new String[] { "# Properly track blocks moved by pistons." });
@@ -214,7 +225,9 @@ public class Config extends Language {
         this.ROLLBACK_ENTITIES = this.getBoolean("rollback-entities");
         this.SKIP_GENERIC_DATA = this.getBoolean("skip-generic-data");
         this.BLOCK_PLACE = this.getBoolean("block-place");
+        this.BLOCK_PLACE_BLACKLIST = this.getMaterialSet("block-place-blacklist");
         this.BLOCK_BREAK = this.getBoolean("block-break");
+        this.BLOCK_BREAK_BLACKLIST = this.getMaterialSet("block-break-blacklist");
         this.NATURAL_BREAK = this.getBoolean("natural-break");
         this.BLOCK_MOVEMENT = this.getBoolean("block-movement");
         this.PISTONS = this.getBoolean("pistons");
@@ -321,6 +334,31 @@ public class Config extends Language {
     private String getString(final String key) {
         final String configured = this.get(key, null);
         return configured == null ? "" : configured;
+    }
+
+    private Set<Material> getMaterialSet(final String key) {
+        final String configured = this.get(key, null);
+        if (configured == null || configured.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        final EnumSet<Material> result = EnumSet.noneOf(Material.class);
+        for (final String raw : configured.split(",")) {
+            final String name = raw.trim().toUpperCase(Locale.ROOT);
+            if (name.isEmpty()) {
+                continue;
+            }
+
+            final Material material = Material.matchMaterial(name);
+            if (material != null) {
+                result.add(material);
+            }
+            else {
+                Bukkit.getLogger().warning("[CoreProtect] Unknown material \"" + raw.trim() + "\" in config key \"" + key + "\"");
+            }
+        }
+
+        return result.isEmpty() ? Collections.emptySet() : result;
     }
 
     public void clearConfig() {
