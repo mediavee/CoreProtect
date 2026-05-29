@@ -380,7 +380,7 @@ public class ItemUtils {
 
         ItemStack item = new ItemStack(MaterialUtils.getType(type), amount);
         item = (ItemStack) net.coreprotect.database.rollback.Rollback.populateItemStack(item, metadata)[2];
-        String displayName = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : "";
+        String displayName = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? ChatUtils.fromLegacy(item.getItemMeta().getDisplayName()) : "";
         StringBuilder message = new StringBuilder("<italic>" + displayName + "</italic><gray>");
 
         List<String> enchantments = ItemMetaHandler.getEnchantments(item, displayName);

@@ -2,6 +2,8 @@ package net.coreprotect.utility;
 
 import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -159,6 +161,19 @@ public class ChatUtils {
         }
 
         return message.toString();
+    }
+
+    /**
+     * Convert a legacy section-formatted string (§-codes, as returned by Bukkit ItemMeta on 1.8)
+     * into a MiniMessage string. Also escapes any MiniMessage tags present in the raw text,
+     * preventing accidental tag injection from user-provided item names/lore.
+     */
+    public static String fromLegacy(String legacy) {
+        if (legacy == null || legacy.isEmpty()) {
+            return "";
+        }
+
+        return MiniMessage.miniMessage().serialize(LegacyComponentSerializer.legacySection().deserialize(legacy));
     }
 
     public static String createTooltip(String phrase, String tooltip) {
