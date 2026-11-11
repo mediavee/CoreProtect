@@ -147,12 +147,12 @@ public class CommandHandler implements CommandExecutor {
                                 Thread.sleep(5000);
                                 Chat.send(user, ChatUtils.header(Phrase.build(Phrase.UPDATE_HEADER, "CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : "")), ""));
                                 if (latestVersion != null) {
-                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect CE v" + latestVersion));
-                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/download/"));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.UPDATE_NOTICE, "CoreProtect CE v" + latestVersion));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.LINK_DOWNLOAD, "www.coreprotect.net/download/"));
                                 }
                                 else if (!VersionUtils.isCommunityEdition()) {
-                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect v" + latestEdgeVersion));
-                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/latest/"));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.UPDATE_NOTICE, "CoreProtect v" + latestEdgeVersion));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.LINK_DOWNLOAD, "www.coreprotect.net/latest/"));
                                 }
                             }
                             catch (Exception e) {

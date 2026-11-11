@@ -49,14 +49,14 @@ public class StatusCommand {
                     }
 
                     Chat.send(player, ChatUtils.header("CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : ""), ""));
-                    Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_VERSION, "<white>", ConfigHandler.EDITION_NAME + " v" + pdfFile.getVersion() + ".") + versionCheck);
+                    Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_VERSION, ConfigHandler.EDITION_NAME + " v" + pdfFile.getVersion() + ".") + versionCheck);
 
                     String donationKey = NetworkHandler.donationKey();
                     if (donationKey != null) {
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_LICENSE, "<white>", Phrase.build(Phrase.VALID_DONATION_KEY)) + " (" + donationKey + ")");
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_LICENSE, Phrase.build(Phrase.VALID_DONATION_KEY)) + " (" + donationKey + ")");
                     }
                     else {
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_LICENSE, "<white>", Phrase.build(Phrase.INVALID_DONATION_KEY)) + "<gray><italic> (" + Phrase.build(Phrase.CHECK_CONFIG) + ")");
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_LICENSE, Phrase.build(Phrase.INVALID_DONATION_KEY)) + "<gray><italic> (" + Phrase.build(Phrase.CHECK_CONFIG) + ")");
                     }
 
                     /*
@@ -71,17 +71,17 @@ public class StatusCommand {
                         firstVersion = " (" + Phrase.build(Phrase.FIRST_VERSION, firstVersion) + ")";
                     }
                     if (Config.getGlobal().MYSQL) {
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_DATABASE, "<white>", "MySQL") + firstVersion);
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_DATABASE, "MySQL") + firstVersion);
                     }
                     else {
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_DATABASE, "<white>", "SQLite") + firstVersion);
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_DATABASE, "SQLite") + firstVersion);
                     }
 
                     if (ConfigHandler.worldeditEnabled) {
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_INTEGRATION, "<white>", "WorldEdit", Selector.FIRST));
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_INTEGRATION, "WorldEdit", Selector.FIRST));
                     }
                     else if (instance.getServer().getPluginManager().getPlugin("WorldEdit") != null) {
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_INTEGRATION, "<white>", "WorldEdit", Selector.SECOND));
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_INTEGRATION, "WorldEdit", Selector.SECOND));
                     }
 
                     try {
@@ -101,7 +101,7 @@ public class StatusCommand {
                             }
                         }
 
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_CONSUMER, "<white>", String.format("%,d", consumerCount), (consumerCount == 1 ? Selector.FIRST : Selector.SECOND)));
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_CONSUMER, String.format("%,d", consumerCount), (consumerCount == 1 ? Selector.FIRST : Selector.SECOND)));
                     }
                     catch (Exception e) {
                         e.printStackTrace();
@@ -147,7 +147,7 @@ public class StatusCommand {
                             systemInformation = cpuInfo + " (" + systemInformation + ")";
                         }
 
-                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_SYSTEM, "<white>", systemInformation));
+                        Chat.send(player, "<yellow>" + Phrase.build(Phrase.STATUS_SYSTEM, systemInformation));
                     }
                     catch (Exception e) {
                         e.printStackTrace();
@@ -156,8 +156,8 @@ public class StatusCommand {
                     // Functions.sendMessage(player, Color.DARK_AQUA + "Website: " + Color.WHITE + "www.coreprotect.net/updates/");
 
                     // Functions.sendMessage(player, Color.DARK_AQUA + Phrase.build(Phrase.LINK_DISCORD, Color.WHITE + "www.coreprotect.net/discord/").replaceFirst(":", ":" + Color.WHITE));
-                    Chat.send(player, "<yellow>" + Phrase.build(Phrase.LINK_DISCORD, "<white>", "www.coreprotect.net/discord/"));
-                    Chat.send(player, "<yellow>" + Phrase.build(Phrase.LINK_PATREON, "<white>", "www.patreon.com/coreprotect/"));
+                    Chat.send(player, "<yellow>" + Phrase.build(Phrase.LINK_DISCORD, "www.coreprotect.net/discord/"));
+                    Chat.send(player, "<yellow>" + Phrase.build(Phrase.LINK_PATREON, "www.patreon.com/coreprotect/"));
 
                     if (player.isOp() && alert.get(player.getName()) == null) {
                         alert.put(player.getName(), true);

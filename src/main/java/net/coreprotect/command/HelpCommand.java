@@ -107,7 +107,7 @@ public class HelpCommand {
                     Chat.send(player, "<gray><italic>" + Phrase.build(Phrase.LINK_WIKI_BLOCK, "https://coreprotect.net/wiki-blocks"));
                 }
                 else {
-                    Chat.send(player, "<white>" + Phrase.build(Phrase.HELP_NO_INFO, "<white>", "/co help " + helpcommand_original));
+                    Chat.send(player, "<white>" + Phrase.build(Phrase.HELP_NO_INFO, "/co help " + helpcommand_original));
                 }
             }
             else {
