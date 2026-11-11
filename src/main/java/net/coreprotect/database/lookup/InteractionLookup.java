@@ -17,6 +17,7 @@ import net.coreprotect.utility.ChatUtils;
 import net.coreprotect.utility.MaterialUtils;
 import net.coreprotect.utility.StringUtils;
 import net.coreprotect.utility.WorldUtils;
+import net.coreprotect.utility.FrenchNames;
 
 public class InteractionLookup {
 
@@ -86,7 +87,7 @@ public class InteractionLookup {
                 String timeAgo = ChatUtils.getTimeSince(resultTime, time, true);
 
                 if (!found) {
-                    resultBuilder = new StringBuilder("<white>----- <dark_aqua>" + Phrase.build(Phrase.INTERACTIONS_HEADER) + "<white> ----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false) + "\n");
+                    resultBuilder = new StringBuilder(ChatUtils.header(Phrase.build(Phrase.INTERACTIONS_HEADER), ChatUtils.getCoordinates(command, worldId, x, y, z, false, false)) + "\n");
                 }
                 found = true;
 
@@ -101,29 +102,17 @@ public class InteractionLookup {
                 if (resultMaterial == null) {
                     resultMaterial = Material.AIR;
                 }
-                String target = resultMaterial.name().toLowerCase(Locale.ROOT);
-                target = StringUtils.nameFilter(target, resultData);
-                if (target.length() > 0) {
-                    target = "minecraft:" + target.toLowerCase(Locale.ROOT) + "";
-                }
+                String target = FrenchNames.block(resultMaterial, resultData);
 
-                // Hide "minecraft:" for now.
-                if (target.startsWith("minecraft:")) {
-                    target = target.split(":")[1];
-                }
 
-                resultBuilder.append(timeAgo + " <white>- ").append(Phrase.build(Phrase.LOOKUP_INTERACTION, "<dark_aqua>" + rbFormat + resultUser + rbFormatClose + "<white>" + rbFormat + rbFormatClose, "<dark_aqua>" + rbFormat + target + rbFormatClose + "<white>", Selector.FIRST)).append("\n");
+                resultBuilder.append(timeAgo + " " + ChatUtils.NEUTRAL + " ").append(Phrase.build(Phrase.LOOKUP_INTERACTION, "<aqua>" + rbFormat + resultUser + rbFormatClose + "<white>" + rbFormat + rbFormatClose, "<yellow>" + rbFormat + target + rbFormatClose + "<white>", Selector.FIRST)).append("\n");
                 PluginChannelListener.getInstance().sendData(commandSender, resultTime, Phrase.LOOKUP_INTERACTION, Selector.FIRST, resultUser, target, -1, x, y, z, worldId, rbFormat, false, false);
             }
             result = resultBuilder.toString();
             results.close();
 
             if (found) {
-                if (count > limit) {
-                    String pageInfo = "<white>-----\n";
-                    pageInfo = pageInfo + ChatUtils.getPageNavigation(command, page, totalPages) + "\n";
-                    result = result + pageInfo;
-                }
+                result = result + ChatUtils.footer(command, page, totalPages);
             }
             else {
                 if (rowMax > count && count > 0) {

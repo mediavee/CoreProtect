@@ -9,6 +9,7 @@ import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.utility.Chat;
+import net.coreprotect.utility.ChatUtils;
 
 public class ConsumerCommand {
 
@@ -62,7 +63,7 @@ public class ConsumerCommand {
             }
         }
 
-        Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "<white>", "/co consumer \\<pause|resume>"));
+        Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co consumer \\<pause|resume>"));
     }
 
 }

@@ -147,19 +147,16 @@ public class SignMessageLookup {
                 String timeAgo = ChatUtils.getTimeSince(resultTime, time, true);
 
                 if (!found) {
-                    result.add("<white>----- <dark_aqua>" + Phrase.build(Phrase.SIGN_HEADER) + "<white> ----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false));
+                    result.add(ChatUtils.header(Phrase.build(Phrase.SIGN_HEADER), ChatUtils.getCoordinates(command, worldId, x, y, z, false, false)));
                 }
                 found = true;
-                result.add(timeAgo + "<white> - <dark_aqua>" + resultUser + ": <white>\n" + parsedMessage + "<white>");
+                result.add(timeAgo + " " + ChatUtils.NEUTRAL + " <aqua>" + resultUser + "<gray> :<white>\n" + parsedMessage + "<white>");
                 PluginChannelListener.getInstance().sendMessageData(commandSender, resultTime, resultUser, message.toString(), true, x, y, z, worldId);
             }
             results.close();
 
             if (found) {
-                if (count > limit) {
-                    result.add("<white>-----");
-                    result.add(ChatUtils.getPageNavigation(command, page, totalPages));
-                }
+                result.add(ChatUtils.footer(command, page, totalPages));
             }
             else {
                 if (rowMax > count && count > 0) {

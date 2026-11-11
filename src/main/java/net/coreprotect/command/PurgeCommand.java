@@ -29,6 +29,7 @@ import net.coreprotect.utility.Chat;
 import net.coreprotect.utility.EntityUtils;
 import net.coreprotect.utility.MaterialUtils;
 import net.coreprotect.utility.VersionUtils;
+import net.coreprotect.utility.ChatUtils;
 
 public class PurgeCommand extends Consumer {
 
@@ -63,11 +64,11 @@ public class PurgeCommand extends Consumer {
             return;
         }
         if (resultc <= 1) {
-            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:\\<time>"));
+            Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:\\<time>"));
             return;
         }
         if (endTime <= 0) {
-            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:\\<time>"));
+            Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co purge t:\\<time>"));
             return;
         }
         if (argRadius != null) {

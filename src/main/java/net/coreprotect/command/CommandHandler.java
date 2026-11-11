@@ -13,6 +13,7 @@ import net.coreprotect.thread.NetworkHandler;
 import net.coreprotect.utility.Chat;
 import net.coreprotect.utility.Extensions;
 import net.coreprotect.utility.VersionUtils;
+import net.coreprotect.utility.ChatUtils;
 
 public class CommandHandler implements CommandExecutor {
     private static CommandHandler instance;
@@ -127,11 +128,11 @@ public class CommandHandler implements CommandExecutor {
                     }
                 }
                 else {
-                    Chat.send(user, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.COMMAND_NOT_FOUND, "<white>", "/co " + corecommand));
+                    Chat.send(user, ChatUtils.PREFIX + Phrase.build(Phrase.COMMAND_NOT_FOUND, "/co " + corecommand));
                 }
             }
             else {
-                Chat.send(user, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "<white>", "/co \\<parameters>"));
+                Chat.send(user, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co \\<parameters>"));
             }
 
             if (user.isOp() && versionAlert.get(user.getName()) == null) {
@@ -144,14 +145,14 @@ public class CommandHandler implements CommandExecutor {
                         public void run() {
                             try {
                                 Thread.sleep(5000);
-                                Chat.send(user, "<white>----- <dark_aqua>" + Phrase.build(Phrase.UPDATE_HEADER, "CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : "")) + " <white>-----");
+                                Chat.send(user, ChatUtils.header(Phrase.build(Phrase.UPDATE_HEADER, "CoreProtect" + (VersionUtils.isCommunityEdition() ? " " + ConfigHandler.COMMUNITY_EDITION : "")), ""));
                                 if (latestVersion != null) {
-                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect CE v" + latestVersion));
-                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/download/"));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect CE v" + latestVersion));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/download/"));
                                 }
                                 else if (!VersionUtils.isCommunityEdition()) {
-                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect v" + latestEdgeVersion));
-                                    Chat.send(user, "<dark_aqua>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/latest/"));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.UPDATE_NOTICE, "<white>", "CoreProtect v" + latestEdgeVersion));
+                                    Chat.send(user, "<yellow>" + Phrase.build(Phrase.LINK_DOWNLOAD, "<white>", "www.coreprotect.net/latest/"));
                                 }
                             }
                             catch (Exception e) {

@@ -18,6 +18,7 @@ import net.coreprotect.utility.EntityUtils;
 import net.coreprotect.utility.MaterialUtils;
 import net.coreprotect.utility.StringUtils;
 import net.coreprotect.utility.WorldUtils;
+import net.coreprotect.utility.FrenchNames;
 
 public class BlockLookup {
 
@@ -89,22 +90,22 @@ public class BlockLookup {
                 String timeAgo = ChatUtils.getTimeSince(resultTime, time, true);
 
                 if (!found) {
-                    resultTextBuilder = new StringBuilder("<white>----- <dark_aqua>CoreProtect <white>----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false) + "\n");
+                    resultTextBuilder = new StringBuilder(ChatUtils.header(Phrase.build(Phrase.LOOKUP_HEADER), ChatUtils.getCoordinates(command, worldId, x, y, z, false, false)) + "\n");
                 }
                 found = true;
 
                 Phrase phrase = Phrase.LOOKUP_BLOCK;
                 String selector = Selector.FIRST;
-                String tag = "<white>-";
+                String tag = ChatUtils.NEUTRAL;
                 if (resultAction == 2 || resultAction == 3) {
                     phrase = Phrase.LOOKUP_INTERACTION; // {clicked|killed}
                     selector = (resultAction != 3 ? Selector.FIRST : Selector.SECOND);
-                    tag = (resultAction != 3 ? "<white>-" : "<red>-");
+                    tag = (resultAction != 3 ? ChatUtils.NEUTRAL : ChatUtils.REMOVE);
                 }
                 else {
                     phrase = Phrase.LOOKUP_BLOCK; // {placed|broke}
                     selector = (resultAction != 0 ? Selector.FIRST : Selector.SECOND);
-                    tag = (resultAction != 0 ? "<green>+" : "<red>-");
+                    tag = (resultAction != 0 ? ChatUtils.ADD : ChatUtils.REMOVE);
                 }
 
                 String rbFormat = "";
@@ -115,38 +116,29 @@ public class BlockLookup {
 
                 String target;
                 if (resultAction == 3) {
-                    target = EntityUtils.getEntityType(resultType).name();
+                    target = FrenchNames.entity(EntityUtils.getEntityType(resultType));
                 }
                 else {
                     Material resultMaterial = MaterialUtils.getType(resultType);
                     if (resultMaterial == null) {
                         resultMaterial = Material.AIR;
                     }
-                    target = StringUtils.nameFilter(resultMaterial.name().toLowerCase(Locale.ROOT), resultData);
-                    target = "minecraft:" + target.toLowerCase(Locale.ROOT);
+                    target = FrenchNames.block(resultMaterial, resultData);
                 }
                 if (target.length() > 0) {
                     target = "" + target + "";
                 }
 
-                // Hide "minecraft:" for now.
-                if (target.startsWith("minecraft:")) {
-                    target = target.split(":")[1];
-                }
 
-                resultTextBuilder.append(timeAgo + " " + tag + " ").append(Phrase.build(phrase, "<dark_aqua>" + rbFormat + resultUser + rbFormatClose + "<white>" + rbFormat + rbFormatClose, "<dark_aqua>" + rbFormat + target + rbFormatClose + "<white>", selector)).append("\n");
-                PluginChannelListener.getInstance().sendData(commandSender, resultTime, phrase, selector, resultUser, target, -1, x, y, z, worldId, rbFormat, false, tag.contains("+"));
+                resultTextBuilder.append(timeAgo + " " + tag + " ").append(Phrase.build(phrase, "<aqua>" + rbFormat + resultUser + rbFormatClose + "<white>" + rbFormat + rbFormatClose, "<yellow>" + rbFormat + target + rbFormatClose + "<white>", selector)).append("\n");
+                PluginChannelListener.getInstance().sendData(commandSender, resultTime, phrase, selector, resultUser, target, -1, x, y, z, worldId, rbFormat, false, tag.equals(ChatUtils.ADD));
             }
 
             resultText = resultTextBuilder.toString();
             results.close();
 
             if (found) {
-                if (count > limit) {
-                    String pageInfo = "<white>-----\n";
-                    pageInfo = pageInfo + ChatUtils.getPageNavigation(command, page, totalPages) + "\n";
-                    resultText = resultText + pageInfo;
-                }
+                resultText = resultText + ChatUtils.footer(command, page, totalPages);
             }
             else {
                 if (rowMax > count && count > 0) {

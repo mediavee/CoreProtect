@@ -6,6 +6,7 @@ import net.coreprotect.config.ConfigHandler;
 import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.utility.Chat;
+import net.coreprotect.utility.ChatUtils;
 
 public class InspectCommand {
     protected static void runCommand(CommandSender player, boolean permission, String[] args) {
@@ -26,19 +27,19 @@ public class InspectCommand {
 
             if (!ConfigHandler.inspecting.get(player.getName())) {
                 if (command == 0) {
-                    Chat.send(player, Phrase.build(Phrase.INSPECTOR_ERROR, Selector.SECOND)); // already disabled
+                    Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.INSPECTOR_ERROR, Selector.SECOND)); // already disabled
                 }
                 else {
-                    Chat.send(player, Phrase.build(Phrase.INSPECTOR_TOGGLED, Selector.FIRST)); // now enabled
+                    Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.INSPECTOR_TOGGLED, Selector.FIRST)); // now enabled
                     ConfigHandler.inspecting.put(player.getName(), true);
                 }
             }
             else {
                 if (command == 1) {
-                    Chat.send(player, Phrase.build(Phrase.INSPECTOR_ERROR, Selector.FIRST)); // already enabled
+                    Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.INSPECTOR_ERROR, Selector.FIRST)); // already enabled
                 }
                 else {
-                    Chat.send(player, Phrase.build(Phrase.INSPECTOR_TOGGLED, Selector.SECOND)); // now disabled
+                    Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.INSPECTOR_TOGGLED, Selector.SECOND)); // now disabled
                     ConfigHandler.inspecting.put(player.getName(), false);
                 }
             }
