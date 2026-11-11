@@ -35,6 +35,7 @@ import net.coreprotect.utility.ItemUtils;
 import net.coreprotect.utility.MaterialUtils;
 import net.coreprotect.utility.StringUtils;
 import net.coreprotect.utility.WorldUtils;
+import net.coreprotect.utility.FrenchNames;
 
 public class StandardLookupThread implements Runnable {
     private final CommandSender player;
@@ -195,14 +196,14 @@ public class StandardLookupThread implements Runnable {
                     else if (pageStart < rows) {
                         List<String[]> lookupList = Lookup.performPartialLookup(statement, player, uuidList, userList, blockList, excludedBlocks, excludedUsers, actions, finalLocation, radius, rowData, timeStart, timeEnd, (int) pageStart, displayResults, restrict_world, true);
 
-                        Chat.send(player, "<white>----- <dark_aqua>" + Phrase.build(Phrase.LOOKUP_HEADER, "CoreProtect<white> | <dark_aqua>") + "<white> -----");
+                        Chat.send(player, ChatUtils.header(Phrase.build(Phrase.LOOKUP_HEADER), ""));
                         if (actions.contains(6) || actions.contains(7)) { // Chat/command
                             for (String[] data : lookupList) {
                                 String time = data[0];
                                 String dplayer = data[1];
                                 String message = data[2];
                                 String timeago = ChatUtils.getTimeSince(Integer.parseInt(time), unixtimestamp, true);
-                                Chat.send(player, timeago + " <white>- <dark_aqua>" + dplayer + ": <white>" + message);
+                                Chat.send(player, timeago + " " + ChatUtils.NEUTRAL + " <aqua>" + dplayer + "<gray> : <white>" + message);
                                 if (PluginChannelHandshakeListener.getInstance().isPluginChannelPlayer(player)) {
                                     int wid = Integer.parseInt(data[3]);
                                     int dataX = Integer.parseInt(data[4]);
@@ -231,9 +232,9 @@ public class StandardLookupThread implements Runnable {
                                     leftPadding = leftPadding + "<white>" + Strings.padStart("", (timeLength - 50) / 4, ' ');
                                 }
 
-                                String tag = (action != 0 ? "<green>+" : "<red>-");
-                                Chat.send(player, timeago + " " + tag + " <dark_aqua>" + Phrase.build(Phrase.LOOKUP_LOGIN, "<dark_aqua>" + dplayer + "<white>", (action != 0 ? Selector.FIRST : Selector.SECOND)));
-                                Chat.send(player, "<white>" + leftPadding + "<gray>^ " + ChatUtils.getCoordinates(command.getName(), wid, dataX, dataY, dataZ, true, true));
+                                String tag = (action != 0 ? ChatUtils.ADD : ChatUtils.REMOVE);
+                                Chat.send(player, timeago + " " + tag + " <white>" + Phrase.build(Phrase.LOOKUP_LOGIN, "<aqua>" + dplayer + "<white>", (action != 0 ? Selector.FIRST : Selector.SECOND)));
+                                Chat.send(player, "<white>" + leftPadding + "<gray>↳ " + ChatUtils.getCoordinates(command.getName(), wid, dataX, dataY, dataZ, true, true));
                                 PluginChannelListener.getInstance().sendInfoData(player, Integer.parseInt(time), Phrase.LOOKUP_LOGIN, (action != 0 ? Selector.FIRST : Selector.SECOND), dplayer, -1, dataX, dataY, dataZ, wid);
                             }
                         }
@@ -243,7 +244,7 @@ public class StandardLookupThread implements Runnable {
                                 String user = ConfigHandler.uuidCacheReversed.get(data[1]);
                                 String username = data[2];
                                 String timeago = ChatUtils.getTimeSince(Integer.parseInt(time), unixtimestamp, true);
-                                Chat.send(player, timeago + " <white>- " + Phrase.build(Phrase.LOOKUP_USERNAME, "<dark_aqua>" + user + "<white>", "<dark_aqua>" + username + "<white>"));
+                                Chat.send(player, timeago + " " + ChatUtils.NEUTRAL + " <white>" + Phrase.build(Phrase.LOOKUP_USERNAME, "<aqua>" + user + "<white>", "<aqua>" + username + "<white>"));
                                 PluginChannelListener.getInstance().sendUsernameData(player, Integer.parseInt(time), user, username);
                             }
                         }
@@ -266,8 +267,8 @@ public class StandardLookupThread implements Runnable {
                                     leftPadding = leftPadding + "<white>" + Strings.padStart("", (timeLength - 50) / 4, ' ');
                                 }
 
-                                Chat.send(player, timeago + " <white>- <dark_aqua>" + dplayer + ": <white>" + message);
-                                Chat.send(player, "<white>" + leftPadding + "<gray>^ " + ChatUtils.getCoordinates(command.getName(), wid, dataX, dataY, dataZ, true, true));
+                                Chat.send(player, timeago + " " + ChatUtils.NEUTRAL + " <aqua>" + dplayer + "<gray> : <white>" + message);
+                                Chat.send(player, "<white>" + leftPadding + "<gray>↳ " + ChatUtils.getCoordinates(command.getName(), wid, dataX, dataY, dataZ, true, true));
                                 PluginChannelListener.getInstance().sendMessageData(player, Integer.parseInt(time), dplayer, message, true, dataX, dataY, dataZ, wid);
                             }
                         }
@@ -287,44 +288,40 @@ public class StandardLookupThread implements Runnable {
                                 String rbdClose = rbd.isEmpty() ? "" : "</strikethrough>";
                                 String timeago = ChatUtils.getTimeSince(Integer.parseInt(time), unixtimestamp, true);
                                 Material blockType = ItemUtils.itemFilter(MaterialUtils.getType(dtype), (Integer.parseInt(data[13]) == 0));
-                                String dname = StringUtils.nameFilter(blockType.name().toLowerCase(Locale.ROOT), ddata);
-                                if (blockType == Material.MOB_SPAWNER && ddata > 0) {
-                                    EntityType spawnerEntity = EntityUtils.getSpawnerType(ddata);
-                                    dname = dname + " (" + spawnerEntity.name().toLowerCase(Locale.ROOT) + ")";
-                                }
+                                String dname = FrenchNames.block(blockType, ddata);
                                 byte[] metadata = data[11] == null ? null : data[11].getBytes(StandardCharsets.ISO_8859_1);
                                 String tooltip = ItemUtils.getEnchantments(metadata, dtype, amount);
 
                                 String selector = Selector.FIRST;
-                                String tag = "<white>-";
+                                String tag = ChatUtils.NEUTRAL;
                                 if (daction == 2 || daction == 3) { // LOOKUP_ITEM
                                     selector = (daction != 2 ? Selector.FIRST : Selector.SECOND);
-                                    tag = (daction != 2 ? "<green>+" : "<red>-");
+                                    tag = (daction != 2 ? ChatUtils.ADD : ChatUtils.REMOVE);
                                 }
                                 else if (daction == 4 || daction == 5) { // LOOKUP_STORAGE
                                     selector = (daction == 4 ? Selector.FIRST : Selector.SECOND);
-                                    tag = (daction == 4 ? "<green>+" : "<red>-");
+                                    tag = (daction == 4 ? ChatUtils.ADD : ChatUtils.REMOVE);
                                 }
                                 else if (daction == 6 || daction == 7) { // LOOKUP_PROJECTILE
                                     selector = Selector.SECOND;
-                                    tag = "<red>-";
+                                    tag = ChatUtils.REMOVE;
                                 }
                                 else if (daction == ItemLogger.ITEM_BREAK || daction == ItemLogger.ITEM_DESTROY || daction == ItemLogger.ITEM_CREATE) {
                                     selector = (daction == ItemLogger.ITEM_CREATE ? Selector.FIRST : Selector.SECOND);
-                                    tag = (daction == ItemLogger.ITEM_CREATE ? "<green>+" : "<red>-");
+                                    tag = (daction == ItemLogger.ITEM_CREATE ? ChatUtils.ADD : ChatUtils.REMOVE);
                                 }
                                 else if (daction == ItemLogger.ITEM_SELL || daction == ItemLogger.ITEM_BUY) { // LOOKUP_TRADE
                                     selector = (daction == ItemLogger.ITEM_BUY ? Selector.FIRST : Selector.SECOND);
-                                    tag = (daction == ItemLogger.ITEM_BUY ? "<green>+" : "<red>-");
+                                    tag = (daction == ItemLogger.ITEM_BUY ? ChatUtils.ADD : ChatUtils.REMOVE);
                                 }
                                 else { // LOOKUP_CONTAINER
                                     selector = (daction == 0 ? Selector.FIRST : Selector.SECOND);
-                                    tag = (daction == 0 ? "<green>+" : "<red>-");
+                                    tag = (daction == 0 ? ChatUtils.ADD : ChatUtils.REMOVE);
                                 }
 
-                                String itemColor = tooltip.isEmpty() ? "<dark_aqua>" : "<light_purple>";
-                                Chat.send(player, timeago + " " + tag + " " + Phrase.build(Phrase.LOOKUP_CONTAINER, "<dark_aqua>" + rbd + dplayer + rbdClose + "<white>" + rbd + rbdClose, "x" + amount, ChatUtils.createTooltip(itemColor + rbd + dname + rbdClose, tooltip) + "<white>", selector));
-                                PluginChannelListener.getInstance().sendData(player, Integer.parseInt(time), Phrase.LOOKUP_CONTAINER, selector, dplayer, dname, amount, dataX, dataY, dataZ, wid, rbd, true, tag.contains("+"));
+                                String itemColor = "<yellow>";
+                                Chat.send(player, timeago + " " + tag + " " + Phrase.build(Phrase.LOOKUP_CONTAINER, "<aqua>" + rbd + dplayer + rbdClose + "<white>" + rbd + rbdClose, "x" + amount, ChatUtils.createTooltip(itemColor + rbd + dname + rbdClose, tooltip) + "<white>", selector));
+                                PluginChannelListener.getInstance().sendData(player, Integer.parseInt(time), Phrase.LOOKUP_CONTAINER, selector, dplayer, dname, amount, dataX, dataY, dataZ, wid, rbd, true, tag.equals(ChatUtils.ADD));
                             }
                         }
                         else {
@@ -347,7 +344,7 @@ public class StandardLookupThread implements Runnable {
                                 int daction = Integer.parseInt(data[7]);
                                 int wid = Integer.parseInt(data[9]);
                                 int amount = Integer.parseInt(data[10]);
-                                String tag = "<white>-";
+                                String tag = ChatUtils.NEUTRAL;
 
                                 String timeago = ChatUtils.getTimeSince(Integer.parseInt(time), unixtimestamp, true);
                                 int timeLength = 50 + (ChatUtils.getTimeSince(Integer.parseInt(time), unixtimestamp, false).replaceAll("[^0-9]", "").length() * 6);
@@ -370,25 +367,12 @@ public class StandardLookupThread implements Runnable {
                                         isPlayer = true;
                                     }
                                     else {
-                                        dname = EntityUtils.getEntityType(dtype).name();
+                                        dname = FrenchNames.entity(EntityUtils.getEntityType(dtype));
                                     }
                                 }
                                 else {
                                     Material blockMaterial = MaterialUtils.getType(dtype);
-                                    dname = StringUtils.nameFilter(blockMaterial.name().toLowerCase(Locale.ROOT), ddata);
-                                    if (blockMaterial == Material.MOB_SPAWNER && ddata > 0) {
-                                        EntityType spawnerEntity = EntityUtils.getSpawnerType(ddata);
-                                        dname = dname + " (" + spawnerEntity.name().toLowerCase(Locale.ROOT) + ")";
-                                    }
-                                }
-                                if (dname.length() > 0 && !isPlayer) {
-                                    dname = "minecraft:" + dname.toLowerCase(Locale.ROOT) + "";
-                                }
-
-                                // Hide "minecraft:" for now.
-                                if (dname.contains("minecraft:")) {
-                                    String[] blockNameSplit = dname.split(":");
-                                    dname = blockNameSplit[1];
+                                    dname = FrenchNames.block(blockMaterial, ddata);
                                 }
 
                                 Phrase phrase = Phrase.LOOKUP_BLOCK;
@@ -401,60 +385,55 @@ public class StandardLookupThread implements Runnable {
                                     if (daction == 2 || daction == 3) {
                                         phrase = Phrase.LOOKUP_ITEM; // {picked up|dropped}
                                         selector = (daction != 2 ? Selector.FIRST : Selector.SECOND);
-                                        tag = (daction != 2 ? "<green>+" : "<red>-");
+                                        tag = (daction != 2 ? ChatUtils.ADD : ChatUtils.REMOVE);
                                         action = "a:item";
                                     }
                                     else if (daction == 4 || daction == 5) {
                                         phrase = Phrase.LOOKUP_STORAGE; // {deposited|withdrew}
                                         selector = (daction != 4 ? Selector.FIRST : Selector.SECOND);
-                                        tag = (daction != 4 ? "<red>-" : "<green>+");
+                                        tag = (daction != 4 ? ChatUtils.REMOVE : ChatUtils.ADD);
                                         action = "a:item";
                                     }
                                     else if (daction == 6 || daction == 7) {
                                         phrase = Phrase.LOOKUP_PROJECTILE; // {threw|shot}
                                         selector = (daction != 7 ? Selector.FIRST : Selector.SECOND);
-                                        tag = "<red>-";
+                                        tag = ChatUtils.REMOVE;
                                         action = "a:item";
                                     }
                                     else {
                                         phrase = Phrase.LOOKUP_CONTAINER; // {added|removed}
                                         selector = (daction != 0 ? Selector.FIRST : Selector.SECOND);
-                                        tag = (daction != 0 ? "<green>+" : "<red>-");
+                                        tag = (daction != 0 ? ChatUtils.ADD : ChatUtils.REMOVE);
                                         action = "a:container";
                                     }
 
-                                    String itemColor = tooltip.isEmpty() ? "<dark_aqua>" : "<light_purple>";
-                                    Chat.send(player, timeago + " " + tag + " " + Phrase.build(phrase, "<dark_aqua>" + rbd + dplayer + rbdClose + "<white>" + rbd + rbdClose, "x" + amount, ChatUtils.createTooltip(itemColor + rbd + dname + rbdClose, tooltip) + "<white>", selector));
-                                    PluginChannelListener.getInstance().sendData(player, Integer.parseInt(time), phrase, selector, dplayer, dname, (tag.contains("+") ? 1 : -1), dataX, dataY, dataZ, wid, rbd, action.contains("container"), tag.contains("+"));
+                                    String itemColor = "<yellow>";
+                                    Chat.send(player, timeago + " " + tag + " " + Phrase.build(phrase, "<aqua>" + rbd + dplayer + rbdClose + "<white>" + rbd + rbdClose, "x" + amount, ChatUtils.createTooltip(itemColor + rbd + dname + rbdClose, tooltip) + "<white>", selector));
+                                    PluginChannelListener.getInstance().sendData(player, Integer.parseInt(time), phrase, selector, dplayer, dname, (tag.equals(ChatUtils.ADD) ? 1 : -1), dataX, dataY, dataZ, wid, rbd, action.contains("container"), tag.equals(ChatUtils.ADD));
                                 }
                                 else {
                                     if (daction == 2 || daction == 3) {
                                         phrase = Phrase.LOOKUP_INTERACTION; // {clicked|killed}
                                         selector = (daction != 3 ? Selector.FIRST : Selector.SECOND);
-                                        tag = (daction != 3 ? "<white>-" : "<red>-");
+                                        tag = (daction != 3 ? ChatUtils.NEUTRAL : ChatUtils.REMOVE);
                                         action = (daction == 2 ? "a:click" : "a:kill");
                                     }
                                     else {
                                         phrase = Phrase.LOOKUP_BLOCK; // {placed|broke}
                                         selector = (daction != 0 ? Selector.FIRST : Selector.SECOND);
-                                        tag = (daction != 0 ? "<green>+" : "<red>-");
+                                        tag = (daction != 0 ? ChatUtils.ADD : ChatUtils.REMOVE);
                                     }
 
-                                    Chat.send(player, timeago + " " + tag + " " + Phrase.build(phrase, "<dark_aqua>" + rbd + dplayer + rbdClose + "<white>" + rbd + rbdClose, "<dark_aqua>" + rbd + dname + rbdClose + "<white>", selector));
-                                    PluginChannelListener.getInstance().sendData(player, Integer.parseInt(time), phrase, selector, dplayer, dname, (tag.contains("+") ? 1 : -1), dataX, dataY, dataZ, wid, rbd, false, tag.contains("+"));
+                                    Chat.send(player, timeago + " " + tag + " " + Phrase.build(phrase, "<aqua>" + rbd + dplayer + rbdClose + "<white>" + rbd + rbdClose, "<yellow>" + rbd + dname + rbdClose + "<white>", selector));
+                                    PluginChannelListener.getInstance().sendData(player, Integer.parseInt(time), phrase, selector, dplayer, dname, (tag.equals(ChatUtils.ADD) ? 1 : -1), dataX, dataY, dataZ, wid, rbd, false, tag.equals(ChatUtils.ADD));
                                 }
 
                                 action = (actions.size() == 0 ? " (" + action + ")" : "");
-                                Chat.send(player, "<white>" + leftPadding + "<gray>^ " + ChatUtils.getCoordinates(command.getName(), wid, dataX, dataY, dataZ, true, true) + "<gray><italic>" + action);
+                                Chat.send(player, "<white>" + leftPadding + "<gray>↳ " + ChatUtils.getCoordinates(command.getName(), wid, dataX, dataY, dataZ, true, true) + "<gray><italic>" + action);
                             }
                         }
-                        if (rows > displayResults) {
-                            int total_pages = (int) Math.ceil(rows / (displayResults + 0.0));
-                            if (actions.contains(6) || actions.contains(7) || actions.contains(9) || (actions.contains(4) && actions.contains(11))) {
-                                Chat.send(player, "-----");
-                            }
-                            Chat.send(player, ChatUtils.getPageNavigation(command.getName(), page, total_pages));
-                        }
+                        int total_pages = (int) Math.ceil(rows / (displayResults + 0.0));
+                        Chat.send(player, ChatUtils.footer(command.getName(), page, total_pages));
                     }
                     else if (rows > 0) {
                         Chat.send(player, Phrase.build(Phrase.NO_RESULTS_PAGE, Selector.FIRST));

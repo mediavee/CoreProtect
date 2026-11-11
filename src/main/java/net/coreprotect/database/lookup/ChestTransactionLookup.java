@@ -20,6 +20,7 @@ import net.coreprotect.utility.ItemUtils;
 import net.coreprotect.utility.MaterialUtils;
 import net.coreprotect.utility.StringUtils;
 import net.coreprotect.utility.WorldUtils;
+import net.coreprotect.utility.FrenchNames;
 
 public class ChestTransactionLookup {
 
@@ -96,12 +97,12 @@ public class ChestTransactionLookup {
                 String timeAgo = ChatUtils.getTimeSince(resultTime, time, true);
 
                 if (!found) {
-                    result.add("<white>----- <dark_aqua>" + Phrase.build(Phrase.CONTAINER_HEADER) + "<white> ----- " + ChatUtils.getCoordinates(command, worldId, x, y, z, false, false));
+                    result.add(ChatUtils.header(Phrase.build(Phrase.CONTAINER_HEADER), ChatUtils.getCoordinates(command, worldId, x, y, z, false, false)));
                 }
                 found = true;
 
                 String selector = (resultAction != 0 ? Selector.FIRST : Selector.SECOND);
-                String tag = (resultAction != 0 ? "<green>+" : "<red>-");
+                String tag = (resultAction != 0 ? ChatUtils.ADD : ChatUtils.REMOVE);
                 String rbFormat = "";
                 String rbFormatClose = "";
                 if (resultRolledBack == 1 || resultRolledBack == 3) {
@@ -113,28 +114,17 @@ public class ChestTransactionLookup {
                 if (resultMaterial == null) {
                     resultMaterial = Material.AIR;
                 }
-                String target = resultMaterial.name().toLowerCase(Locale.ROOT);
-                target = StringUtils.nameFilter(target, resultData);
-                if (target.length() > 0) {
-                    target = "minecraft:" + target.toLowerCase(Locale.ROOT) + "";
-                }
+                String target = FrenchNames.block(resultMaterial, resultData);
 
-                // Hide "minecraft:" for now.
-                if (target.startsWith("minecraft:")) {
-                    target = target.split(":")[1];
-                }
 
-                String itemColor = tooltip.isEmpty() ? "<dark_aqua>" : "<light_purple>";
-                result.add(timeAgo + " " + tag + " " + Phrase.build(Phrase.LOOKUP_CONTAINER, "<dark_aqua>" + rbFormat + resultUser + rbFormatClose + "<white>" + rbFormat + rbFormatClose, "x" + resultAmount, ChatUtils.createTooltip(itemColor + rbFormat + target + rbFormatClose, tooltip) + "<white>", selector));
-                PluginChannelListener.getInstance().sendData(commandSender, resultTime, Phrase.LOOKUP_CONTAINER, selector, resultUser, target, resultAmount, x, y, z, worldId, rbFormat, true, tag.contains("+"));
+                String itemColor = "<yellow>";
+                result.add(timeAgo + " " + tag + " " + Phrase.build(Phrase.LOOKUP_CONTAINER, "<aqua>" + rbFormat + resultUser + rbFormatClose + "<white>" + rbFormat + rbFormatClose, "x" + resultAmount, ChatUtils.createTooltip(itemColor + rbFormat + target + rbFormatClose, tooltip) + "<white>", selector));
+                PluginChannelListener.getInstance().sendData(commandSender, resultTime, Phrase.LOOKUP_CONTAINER, selector, resultUser, target, resultAmount, x, y, z, worldId, rbFormat, true, tag.equals(ChatUtils.ADD));
             }
             results.close();
 
             if (found) {
-                if (count > limit) {
-                    result.add("<white>-----");
-                    result.add(ChatUtils.getPageNavigation(command, page, totalPages));
-                }
+                result.add(ChatUtils.footer(command, page, totalPages));
             }
             else {
                 if (rowMax > count && count > 0) {

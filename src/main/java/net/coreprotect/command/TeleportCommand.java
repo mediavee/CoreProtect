@@ -14,6 +14,7 @@ import net.coreprotect.utility.Chat;
 import net.coreprotect.utility.Teleport;
 import net.coreprotect.utility.Util;
 import net.coreprotect.utility.WorldUtils;
+import net.coreprotect.utility.ChatUtils;
 
 public class TeleportCommand {
 
@@ -39,7 +40,7 @@ public class TeleportCommand {
         }
 
         if (resultc < 3) {
-            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport \\<world> \\<x> \\<y> \\<z>"));
+            Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport \\<world> \\<x> \\<y> \\<z>"));
             return;
         }
 
@@ -89,7 +90,7 @@ public class TeleportCommand {
         String zValidate = z.replaceAll("[^.\\-]", "");
 
         if ((x.length() == 0 || x.length() >= 12 || x.equals(xValidate)) || (y.length() == 0 || y.length() >= 12 || y.equals(yValidate)) || (z.length() == 0 || z.length() >= 12 || z.equals(zValidate))) {
-            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport \\<world> \\<x> \\<y> \\<z>"));
+            Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co teleport \\<world> \\<x> \\<y> \\<z>"));
             return;
         }
 

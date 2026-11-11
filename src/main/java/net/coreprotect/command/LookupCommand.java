@@ -24,6 +24,7 @@ import net.coreprotect.language.Phrase;
 import net.coreprotect.language.Selector;
 import net.coreprotect.utility.Chat;
 import net.coreprotect.utility.WorldUtils;
+import net.coreprotect.utility.ChatUtils;
 
 public class LookupCommand {
     public static void runCommand(CommandSender player, Command command, boolean permission, String[] args) {
@@ -54,7 +55,7 @@ public class LookupCommand {
         }
 
         if (args[0].toLowerCase(Locale.ROOT).equals("page") && (args.length != 2 || !args[1].equals(args[1].replaceAll("[^0-9]", "")))) {
-            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "<white>", "/co page \\<page>"));
+            Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co page \\<page>"));
             return;
         }
 
@@ -160,7 +161,7 @@ public class LookupCommand {
             return;
         }
         if (resultc < 2) {
-            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l \\<params>"));
+            Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l \\<params>"));
             return;
         }
         if (argAction.contains(-1)) {
@@ -530,7 +531,7 @@ public class LookupCommand {
                     }
 
                     if (rollbackusers.size() == 1 && rollbackusers.contains("#global") && argAction.contains(9)) {
-                        Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l a:username u:\\<user>"));
+                        Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l a:username u:\\<user>"));
                         return;
                     }
 
@@ -576,7 +577,7 @@ public class LookupCommand {
                 }
 
                 try {
-                    Chat.send(player, "<dark_aqua>CoreProtect <white>- <italic>" + Phrase.build(Phrase.LOOKUP_SEARCHING));
+                    Chat.send(player, ChatUtils.PREFIX + "<italic>" + Phrase.build(Phrase.LOOKUP_SEARCHING));
 
                     if (timeStart == -1) {
                         if (startTime <= 0) {
@@ -612,12 +613,12 @@ public class LookupCommand {
                     return;
                 }
                 else {
-                    Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l \\<params>"));
+                    Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l \\<params>"));
                 }
             }
         }
         else {
-            Chat.send(player, "<dark_aqua>CoreProtect <white>- " + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l \\<params>"));
+            Chat.send(player, ChatUtils.PREFIX + Phrase.build(Phrase.MISSING_PARAMETERS, "/co l \\<params>"));
         }
     }
 }
